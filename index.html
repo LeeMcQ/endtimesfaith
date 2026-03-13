@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>End Times Faith — Script Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --surface2: #181818;
+    --border: #252525;
+    --gold: #c9a227;
+    --gold-dim: #7a5f10;
+    --gold-glow: rgba(201,162,39,0.13);
+    --text: #e8e0d0;
+    --text-muted: #7a7060;
+    --text-faint: #333028;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.65;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grain */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Warm glow from top */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -180px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 360px;
+    background: radial-gradient(ellipse, rgba(201,162,39,0.06) 0%, transparent 72%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 48px 0 36px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 44px;
+  }
+
+  /* ── LOGO SVG ── */
+  .logo-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .logo-svg {
+    width: 80px;
+    height: 80px;
+    filter: drop-shadow(0 0 18px rgba(201,162,39,0.28));
+    animation: pulseGlow 3.5s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { filter: drop-shadow(0 0 14px rgba(201,162,39,0.22)); }
+    50%       { filter: drop-shadow(0 0 28px rgba(201,162,39,0.48)); }
+  }
+
+  .site-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(28px, 6vw, 54px);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: var(--text);
+  }
+
+  .site-name span { color: var(--gold); }
+
+  .tagline {
+    font-size: 16px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--text-muted);
+    margin-top: 10px;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── DIVIDER ── */
+  .ornament {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 28px 0;
+    color: var(--gold-dim);
+    font-size: 14px;
+  }
+  .ornament::before, .ornament::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+  }
+  .ornament::before { background: linear-gradient(to right, transparent, var(--gold-dim)); }
+  .ornament::after  { background: linear-gradient(to left,  transparent, var(--gold-dim)); }
+
+  /* ── INPUT SECTION ── */
+  .input-section { margin-bottom: 28px; }
+
+  label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 14px 18px;
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 19px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    caret-color: var(--gold);
+    -webkit-appearance: none;
+  }
+
+  input[type="text"]::placeholder {
+    color: var(--text-faint);
+    font-style: italic;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--gold-dim);
+    box-shadow: 0 0 0 3px var(--gold-glow);
+  }
+
+  /* ── GENERATE BUTTON ── */
+  .btn-generate {
+    background: var(--gold);
+    color: #060606;
+    border: none;
+    border-radius: 5px;
+    padding: 14px 22px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    flex-shrink: 0;
+  }
+
+  .btn-generate:hover {
+    background: #dbb840;
+    box-shadow: 0 0 22px rgba(201,162,39,0.32);
+  }
+
+  .btn-generate:active { transform: scale(0.97); }
+
+  .btn-generate:disabled {
+    background: var(--gold-dim);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* ── PILLS ── */
+  .examples {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    align-items: center;
+  }
+
+  .examples-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 4px 13px;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    font-family: 'Crimson Pro', serif;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pill:hover, .pill:active {
+    border-color: var(--gold-dim);
+    color: var(--text);
+    background: var(--surface2);
+  }
+
+  /* ── LOADING ── */
+  .loading-bar {
+    display: none;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 20px 0 8px;
+    overflow: hidden;
+  }
+
+  .loading-bar.active { display: block; }
+
+  .loading-bar::after {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 38%;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+
+  @keyframes shimmer {
+    0%   { transform: translateX(-160%); }
+    100% { transform: translateX(380%); }
+  }
+
+  .status-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    color: var(--text-muted);
+    text-align: center;
+    min-height: 18px;
+    margin-bottom: 4px;
+  }
+
+  /* ── OUTPUT ── */
+  .output-wrapper {
+    display: none;
+    animation: fadeUp 0.35s ease;
+  }
+
+  .output-wrapper.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .output-title-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .output-actions {
+    display: flex;
+    gap: 7px;
+  }
+
+  .btn-action {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-action:hover { border-color: var(--gold-dim); color: var(--gold); }
+  .btn-action.copied { border-color: #2a7a3a; color: #4aaa5a; }
+
+  .output-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 24px 28px;
+    white-space: pre-wrap;
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.9;
+    color: var(--text);
+    max-height: 65vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    word-break: break-word;
+  }
+
+  .output-box::-webkit-scrollbar { width: 4px; }
+  .output-box::-webkit-scrollbar-track { background: transparent; }
+  .output-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  /* ── ERROR ── */
+  .error-box {
+    display: none;
+    background: rgba(160,40,30,0.09);
+    border: 1px solid rgba(160,40,30,0.3);
+    border-radius: 5px;
+    padding: 14px 18px;
+    color: #d07060;
+    margin-top: 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .error-box.visible { display: block; }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 60px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-faint);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 500px) {
+    .wrapper { padding: 0 16px 60px; }
+
+    header { padding: 36px 0 28px; margin-bottom: 32px; }
+
+    .logo-svg { width: 62px; height: 62px; }
+
+    .site-name { font-size: clamp(26px, 8vw, 40px); }
+
+    .input-row { flex-direction: column; }
+
+    .btn-generate {
+      width: 100%;
+      padding: 15px;
+      font-size: 12px;
+      letter-spacing: 0.15em;
+    }
+
+    input[type="text"] { font-size: 17px; padding: 13px 16px; }
+
+    .output-box { padding: 18px 16px; font-size: 15px; max-height: 55vh; }
+
+    .btn-action { padding: 7px 10px; font-size: 9px; }
+
+    .examples { gap: 6px; }
+    .pill { font-size: 13px; padding: 4px 11px; }
+  }
+
+  @keyframes shakeInput {
+    0%,100%{ transform: translateX(0); }
+    20%    { transform: translateX(-5px); }
+    40%    { transform: translateX(5px); }
+    60%    { transform: translateX(-3px); }
+    80%    { transform: translateX(3px); }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <!-- ── LOGO ── -->
+    <div class="logo-wrap">
+      <svg class="logo-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-label="End Times Faith logo">
+        <defs>
+          <radialGradient id="glowBg" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#c9a227" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#c9a227" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="crossGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stop-color="#e8c84a"/>
+            <stop offset="100%" stop-color="#a07010"/>
+          </linearGradient>
+          <linearGradient id="hourGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stop-color="#c9a227" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#7a5510" stop-opacity="0.7"/>
+          </linearGradient>
+          <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- background glow circle -->
+        <circle cx="40" cy="40" r="38" fill="url(#glowBg)"/>
+
+        <!-- outer ring -->
+        <circle cx="40" cy="40" r="36" fill="none" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.35"/>
+
+        <!-- hourglass body -->
+        <g filter="url(#softGlow)">
+          <!-- top trapezoid -->
+          <polygon points="26,16 54,16 46,37 34,37" fill="url(#hourGrad)" opacity="0.85"/>
+          <!-- bottom trapezoid -->
+          <polygon points="34,43 46,43 54,64 26,64" fill="url(#hourGrad)" opacity="0.65"/>
+          <!-- waist lines -->
+          <line x1="34" y1="37" x2="46" y2="37" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.6"/>
+          <line x1="34" y1="43" x2="46" y2="43" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.6"/>
+          <!-- top/bottom bars -->
+          <rect x="24" y="13" width="32" height="4" rx="1.5" fill="url(#crossGrad)"/>
+          <rect x="24" y="63" width="32" height="4" rx="1.5" fill="url(#crossGrad)" opacity="0.7"/>
+          <!-- falling sand dot -->
+          <circle cx="40" cy="47" r="1.8" fill="#e8c84a" opacity="0.9"/>
+        </g>
+
+        <!-- cross overlaid on waist -->
+        <g filter="url(#softGlow)">
+          <!-- vertical beam -->
+          <rect x="38.2" y="28" width="3.6" height="24" rx="1" fill="url(#crossGrad)"/>
+          <!-- horizontal beam -->
+          <rect x="30" y="35" width="20" height="3.6" rx="1" fill="url(#crossGrad)"/>
+        </g>
+
+        <!-- small rays top -->
+        <g stroke="#c9a227" stroke-width="0.9" stroke-linecap="round" stroke-opacity="0.55">
+          <line x1="40" y1="4"  x2="40" y2="9"/>
+          <line x1="52" y1="7"  x2="49.5" y2="11"/>
+          <line x1="28" y1="7"  x2="30.5" y2="11"/>
+          <line x1="60" y1="16" x2="56.5" y2="18.5"/>
+          <line x1="20" y1="16" x2="23.5" y2="18.5"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="site-name">End Times <span>Faith</span></div>
+    <p class="tagline">Prophetic scripts. Raw. Urgent. Scripture-first.</p>
+  </header>
+
+  <!-- ── INPUT ── -->
+  <div class="input-section">
+    <label for="subject">Enter a Christian Subject or Theme</label>
+    <div class="input-row">
+      <input
+        type="text"
+        id="subject"
+        placeholder="e.g. the sabbath, tithing, christmas…"
+        autocomplete="off"
+        spellcheck="false"
+        enterkeyhint="go"
+      />
+      <button class="btn-generate" id="generateBtn" onclick="generate()">
+        ⚡ Generate
+      </button>
+    </div>
+    <div class="examples">
+      <span class="examples-label">Try:</span>
+      <span class="pill" onclick="fillAndRun('the sabbath')">the sabbath</span>
+      <span class="pill" onclick="fillAndRun('tithing')">tithing</span>
+      <span class="pill" onclick="fillAndRun('worship music')">worship music</span>
+      <span class="pill" onclick="fillAndRun('christmas')">christmas</span>
+      <span class="pill" onclick="fillAndRun('small groups')">small groups</span>
+      <span class="pill" onclick="fillAndRun('prayer routines')">prayer routines</span>
+    </div>
+  </div>
+
+  <div class="ornament">✦</div>
+
+  <div class="loading-bar" id="loadingBar"></div>
+  <div class="status-text" id="statusText"></div>
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- ── OUTPUT ── -->
+  <div class="output-wrapper" id="outputWrapper">
+    <div class="output-header">
+      <span class="output-title-label">Generated Script</span>
+      <div class="output-actions">
+        <button class="btn-action" id="copyBtn" onclick="copyOutput()">📋 Copy</button>
+        <button class="btn-action" onclick="downloadOutput()">⬇ Download .txt</button>
+      </div>
+    </div>
+    <div class="output-box" id="outputBox"></div>
+  </div>
+
+  <footer>End Times Faith &nbsp;·&nbsp; Script Generator &nbsp;·&nbsp; Internal Use Only</footer>
+</div>
+
+<script>
+const PROMPT_SYSTEM = `You are the exclusive scriptwriter for the End Times Faith YouTube channel. Your videos are raw, urgent, prophetic exposés that tear down modern "Christian" habits, traditions, routines, songs, symbols, activities, and teachings that look holy but actually replace, undermine, hide disobedience, or quietly contradict Scripture. Always call people back to simple New Testament obedience — and always anchor the conclusion in the Sabbath truth as revealed in Scripture and affirmed by Ellen G. White's The Great Controversy.
+
+Output ONLY a clean .en.txt subtitle file — nothing else. Zero markdown. Zero preamble.
+
+Structure to follow EXACTLY:
+
+1. TITLE (first line): Auto-generate the perfect clickbait title for the subject given. Patterns:
+   - "Every "Christian" [Subject] That [REPLACES Scripture / UNDERMINES Grace / HIDES Disobedience / QUIETLY Changed the Faith]"
+   - "Every [Subject] That Looks Holy But Hides…"
+   - "Why [Subject] Replaces Real Discipleship"
+
+2. HOOK (lines 2–8): Short punchy lines, 5–12 words max. Use openers like:
+   "We call ourselves Bible-believing… but most of us barely open it."
+   "But what if I told you…"
+   "Every 'Christian' who still does this…"
+   End hook with a shocking statement + "…"
+
+3. THESIS (4–6 lines): Boldly name the problem using CAPS: REPLACES, UNDERMINES, HIDES DISOBEDIENCE, QUIETLY, TRAINS YOU TO, FOOLS YOU INTO.
+
+4. MAIN BODY (9–15 numbered points). Each point must follow this exact micro-pattern:
+   Line 1: Vivid modern scene
+   Line 2–3: "This trains you to [negative]. It trains you to [another negative]."
+   Line 4: "It quietly [harm]…" or "This fools you into thinking [false security]…"
+   Line 5–6: "But when you open Scripture…"
+   Line 7: Direct Bible quote or reference + contrast with Jesus or the early church
+   Line 8: "This is not obedience — this is [strong accusation]."
+   Every single line: 5–12 words. One thought per line.
+
+5. CONCLUSION (last 10–13 lines):
+   Summarise the root issue (culture over Christ / performance over obedience / tradition over truth).
+   Then write EXACTLY these lines (do not alter them):
+   "Drop the tradition."
+   "Return to the Bible alone."
+   "As Ellen G. White wrote in The Great Controversy, p. 605:"
+   "\\"The Sabbath will be the great test of loyalty,"
+   "for it is the point of truth especially controverted.\\""
+   "Drop the tradition. Return to the Bible alone."
+   End with comment bait: "Which one of these are you still doing?" or "What did this video expose in your life? Drop it in the comments."
+
+Tone (non-negotiable):
+- Urgent, loving, uncompromising. Speak directly to "you".
+- Super-short lines for subtitle timing.
+- Lots of … and selective CAPS for punch.
+- "This trains you to…" and "It quietly…" are your signature phrases.
+- Zero filler. Zero softening. Zero markdown.
+
+Now generate the FULL subtitle script for the subject:`;
+
+let lastOutput = '';
+
+async function generate() {
+  const subject = document.getElementById('subject').value.trim();
+  if (!subject) { shake(document.getElementById('subject')); return; }
+
+  const btn        = document.getElementById('generateBtn');
+  const loadingBar = document.getElementById('loadingBar');
+  const statusText = document.getElementById('statusText');
+  const errorBox   = document.getElementById('errorBox');
+  const outWrap    = document.getElementById('outputWrapper');
+  const outBox     = document.getElementById('outputBox');
+
+  btn.disabled = true;
+  loadingBar.classList.add('active');
+  errorBox.classList.remove('visible');
+  outWrap.classList.remove('visible');
+  statusText.textContent = 'Writing your script…';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: PROMPT_SYSTEM,
+        messages: [{ role: 'user', content: subject }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const text = (data.content || []).map(b => b.text || '').join('');
+    if (!text) throw new Error('Empty response. Please try again.');
+
+    lastOutput = text;
+    outBox.textContent = text;
+    outWrap.classList.add('visible');
+    statusText.textContent = '';
+    setTimeout(() => outWrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+
+  } catch (e) {
+    errorBox.textContent = '⚠ ' + (e.message || 'Something went wrong.');
+    errorBox.classList.add('visible');
+    statusText.textContent = '';
+  } finally {
+    btn.disabled = false;
+    loadingBar.classList.remove('active');
+  }
+}
+
+function fillAndRun(v) {
+  document.getElementById('subject').value = v;
+  generate();
+}
+
+async function copyOutput() {
+  if (!lastOutput) return;
+  try {
+    await navigator.clipboard.writeText(lastOutput);
+    const btn = document.getElementById('copyBtn');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+  } catch {}
+}
+
+function downloadOutput() {
+  if (!lastOutput) return;
+  const slug = document.getElementById('subject').value.trim().replace(/\s+/g, '-').toLowerCase();
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([lastOutput], { type: 'text/plain' })),
+    download: `endtimesfaith-${slug || 'script'}.en.txt`
+  });
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function shake(el) {
+  el.style.animation = 'none';
+  void el.offsetHeight;
+  el.style.animation = 'shakeInput 0.35s ease';
+  setTimeout(() => el.style.animation = '', 400);
+}
+
+document.getElementById('subject').addEventListener('keydown', e => {
+  if (e.key === 'Enter') generate();
+});
+</script>
+</body>
+</html>
