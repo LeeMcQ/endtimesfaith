@@ -358,7 +358,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
 <script>
 
 const PROVIDERS = {
-  gemini: { name: 'Gemini', label: 'Gemini', model: 'gemini-2.5-flash', modelLabel: 'gemini-2.5-flash', tier: 'free', prefix: 'AIza / AQ.', recommended: true,
+  gemini: { name: 'Gemini', label: 'Gemini', model: 'gemini-3.6-flash', modelLabel: 'gemini-3.6-flash', tier: 'free', prefix: 'AIza / AQ.', recommended: true,
     hint: 'Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — no credit card needed. New keys start with <strong>AQ.</strong> Older keys start with <strong>AIza</strong>. Both work.' },
   anthropic: { name: 'Claude', label: 'Claude (Anthropic)', model: 'claude-sonnet-4-20250514', modelLabel: 'claude-sonnet-4', tier: 'paid', prefix: 'sk-ant-',
     hint: 'Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> — requires a small credit deposit.' },
@@ -579,7 +579,7 @@ function renderLesson(){
   const days=(l.days||[]).map(d=>'<div class="day-item"><span class="mono d">'+esc(d.day)+'</span><span class="t">'+esc(d.title)+'</span> <span class="mono" style="color:var(--text-muted);font-size:10px">'+esc(d.scripture)+'</span><div class="s">'+esc(d.summary)+'</div></div>').join('');
   const sources=(l.sources||[]).map(s=>'<a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.name)+'</a>').join('');
   const gKey=geminiKey();
-  const geminiField = gKey ? '<p class="mono" style="color:var(--text-muted);margin-top:14px">Running on your Gemini API · gemini-2.5-flash</p>' :
+  const geminiField = gKey ? '<p class="mono" style="color:var(--text-muted);margin-top:14px">Running on your Gemini API · gemini-3.6-flash</p>' :
     '<div class="gemini-box"><span class="mono field-label">Gemini API key — required for the three study buttons</span>'+
     '<input type="password" id="geminiKeyInput" placeholder="AIza… or AQ.…" autocomplete="off" spellcheck="false" style="margin-top:8px">'+
     '<div class="key-hint">Free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Stored only on this device.</div></div>';
