@@ -265,7 +265,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
   <div class="key-group">
     <span class="mono field-label">2 — Paste your API key</span>
     <div class="key-input-wrap">
-      <input type="password" id="apiKeyInput" placeholder="AIza…" autocomplete="off" spellcheck="false"/>
+      <input type="password" id="apiKeyInput" placeholder="AIza… or AQ.…" autocomplete="off" spellcheck="false"/>
       <button class="eye-btn" type="button" onclick="toggleKeyVis()" title="Show/hide key">Show</button>
     </div>
     <div class="key-hint" id="keyHint"></div>
@@ -358,8 +358,8 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
 <script>
 
 const PROVIDERS = {
-  gemini: { name: 'Gemini', label: 'Gemini', model: 'gemini-2.5-flash', modelLabel: 'gemini-2.5-flash', tier: 'free', prefix: 'AIza', recommended: true,
-    hint: 'Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — no credit card needed.' },
+  gemini: { name: 'Gemini', label: 'Gemini', model: 'gemini-2.5-flash', modelLabel: 'gemini-2.5-flash', tier: 'free', prefix: 'AIza / AQ.', recommended: true,
+    hint: 'Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — no credit card needed. New keys start with <strong>AQ.</strong> Older keys start with <strong>AIza</strong>. Both work.' },
   anthropic: { name: 'Claude', label: 'Claude (Anthropic)', model: 'claude-sonnet-4-20250514', modelLabel: 'claude-sonnet-4', tier: 'paid', prefix: 'sk-ant-',
     hint: 'Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> — requires a small credit deposit.' },
   openai: { name: 'ChatGPT', label: 'ChatGPT (OpenAI)', model: 'gpt-4o-mini', modelLabel: 'gpt-4o-mini', tier: 'paid', prefix: 'sk-',
@@ -420,9 +420,14 @@ const STUDY = {
 };
 
 function looksLikeKey(id, key){
+  if(id==='gemini') return key.startsWith('AIza') || key.startsWith('AQ.');
   const p = PROVIDERS[id].prefix;
   if(id==='openai') return key.startsWith('sk-') && !key.startsWith('sk-ant-') && !key.startsWith('sk-or-');
   return key.startsWith(p);
+}
+function keyPlaceholder(id){
+  if(id==='gemini') return 'AIza… or AQ.…';
+  return PROVIDERS[id].prefix+'…';
 }
 
 function renderProviders(){
@@ -435,7 +440,7 @@ function renderProviders(){
       '<span class="provider-badge '+(p.tier==='free'?'badge-free':'badge-paid')+'">'+(p.tier==='free'?'Free tier':'Paid key')+'</span></div><div class="check"></div></div>';
   }).join('');
   document.getElementById('keyHint').innerHTML = PROVIDERS[activeProvider].hint;
-  document.getElementById('apiKeyInput').placeholder = PROVIDERS[activeProvider].prefix+'…';
+  document.getElementById('apiKeyInput').placeholder = keyPlaceholder(activeProvider);
 }
 
 function selectProvider(card){
@@ -443,7 +448,7 @@ function selectProvider(card){
   card.classList.add('selected');
   activeProvider = card.dataset.provider;
   document.getElementById('keyHint').innerHTML = PROVIDERS[activeProvider].hint;
-  document.getElementById('apiKeyInput').placeholder = PROVIDERS[activeProvider].prefix+'…';
+  document.getElementById('apiKeyInput').placeholder = keyPlaceholder(activeProvider);
   document.getElementById('apiKeyInput').value = localStorage.getItem('etf_key_'+activeProvider) || '';
 }
 
@@ -458,7 +463,7 @@ function doLogin(){
   err.classList.remove('show');
   if(!key){ err.textContent='Please paste your API key before connecting.'; err.classList.add('show'); return; }
   if(!looksLikeKey(activeProvider,key)){
-    err.textContent="That doesn't look like a "+PROVIDERS[activeProvider].name+" key. Expected format: "+PROVIDERS[activeProvider].prefix+"…";
+    err.textContent="That doesn't look like a "+PROVIDERS[activeProvider].name+" key. Expected format: "+keyPlaceholder(activeProvider)+";
     err.classList.add('show'); return;
   }
   apiKey=key;
@@ -577,7 +582,7 @@ function renderLesson(){
   const gKey=geminiKey();
   const geminiField = gKey ? '<p class="mono" style="color:var(--text-muted);margin-top:14px">Running on your Gemini API · gemini-2.5-flash</p>' :
     '<div class="gemini-box"><span class="mono field-label">Gemini API key — required for the three study buttons</span>'+
-    '<input type="password" id="geminiKeyInput" placeholder="AIza…" autocomplete="off" spellcheck="false" style="margin-top:8px">'+
+    '<input type="password" id="geminiKeyInput" placeholder="AIza… or AQ.…" autocomplete="off" spellcheck="false" style="margin-top:8px">'+
     '<div class="key-hint">Free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Stored only on this device.</div></div>';
   document.getElementById('lessonCard').innerHTML =
     '<div class="lesson-head"><span class="mono" style="color:var(--gold)">This week\'s lesson study</span><span class="provider-badge badge-paid">Q'+QUARTER.quarter+' '+QUARTER.year+' · Lesson '+l.number+'</span></div>'+
