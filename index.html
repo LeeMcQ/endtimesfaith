@@ -492,22 +492,50 @@ function switchProvider(){
 
 async function callGemini(key, prompt, opts){
   opts = opts || {};
-  const body = {
-    contents: [{ role:'user', parts:[{ text: prompt }] }],
-    generationConfig: { maxOutputTokens: opts.maxTokens || 8192, temperature: 0.7 }
-  };
-  if(opts.system) body.systemInstruction = { parts:[{ text: opts.system }] };
-  if(opts.useSearch) body.tools = [{ googleSearch: {} }];
-  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+PROVIDERS.gemini.model+':generateContent', {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', 'x-goog-api-key': key },
-    body: JSON.stringify(body)
-  });
-  const data = await res.json().catch(()=>({}));
-  if(!res.ok) throw new Error((data.error&&data.error.message) || 'Gemini error '+res.status);
-  const text = ((data.candidates||[]).flatMap(c=>(c.content&&c.content.parts)||[]).map(p=>p.text||'').join(''));
-  if(!text) throw new Error('Empty response from Gemini. Try again.');
-  return text;
+  async function once(useSearch){
+    const body = {
+      contents: [{ role:'user', parts:[{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: opts.maxTokens || 8192,
+        temperature: 0.7,
+        thinkingConfig: { thinkingBudget: 0 }
+      }
+    };
+    if(opts.system) body.systemInstruction = { parts:[{ text: opts.system }] };
+    if(useSearch) body.tools = [{ googleSearch: {} }];
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+PROVIDERS.gemini.model+':generateContent', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){
+      const msg = (data.error && data.error.message) || '';
+      const status = (data.error && data.error.status) || '';
+      if(res.status===429 || status==='RESOURCE_EXHAUSTED' || /quota/i.test(msg)){
+        const err = new Error('QUOTA');
+        err.quota = true;
+        err.raw = msg;
+        throw err;
+      }
+      if(/no longer available/i.test(msg)) throw new Error('This Gemini model is retired. Hard-refresh the page — the site now uses gemini-3.6-flash.');
+      if(/API_KEY_INVALID|API key not valid|UNAUTHENTICATED|invalid authentication/i.test(msg+' '+status)) throw new Error('Gemini rejected this API key. Create a new key at aistudio.google.com/apikey.');
+      throw new Error(msg || 'Gemini error '+res.status);
+    }
+    const text = ((data.candidates||[]).flatMap(c=>(c.content&&c.content.parts)||[]).map(p=>p.text||'').join('')).trim();
+    if(!text) throw new Error('Empty response from Gemini. Try again.');
+    return text;
+  }
+  try{
+    return await once(!!opts.useSearch);
+  }catch(e){
+    if(e.quota && opts.useSearch){
+      const text = await once(false);
+      return '*Live web search hit a free-tier Gemini quota, so this pass used the lesson text itself. Wait a minute and run Best questions again for live forum ranking.*\n\n'+text;
+    }
+    if(e.quota) throw new Error('Gemini free-tier quota is exhausted for the moment. Wait about a minute, then try again.');
+    throw e;
+  }
 }
 async function callAnthropic(key, subject){
   const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -530,7 +558,7 @@ async function callOpenAICompat(url, key, model, subject, extra){
   return (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
 }
 async function callProvider(subject){
-  if(activeProvider==='gemini') return callGemini(apiKey, subject, { system: SYSTEM_PROMPT, maxTokens: 1500 });
+  if(activeProvider==='gemini') return callGemini(apiKey, subject, { system: SYSTEM_PROMPT, maxTokens: 8192 });
   if(activeProvider==='anthropic') return callAnthropic(apiKey, subject);
   if(activeProvider==='openai') return callOpenAICompat('https://api.openai.com/v1/chat/completions', apiKey, PROVIDERS.openai.model, subject);
   if(activeProvider==='groq') return callOpenAICompat('https://api.groq.com/openai/v1/chat/completions', apiKey, PROVIDERS.groq.model, subject);
