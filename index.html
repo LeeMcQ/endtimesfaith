@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>End Times Faith — Script Generator</title>
 <meta name="description" content="Prophetic scripts and this week's SDA Sabbath School lesson study, powered by your Gemini API key.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +17,7 @@
   --green: #4aaa5a; --green-b: #2a7a3a;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; }
 body {
   background: var(--bg); color: var(--text);
   font-family: 'Crimson Pro', Georgia, serif; font-size: 18px; line-height: 1.65;
@@ -32,7 +32,7 @@ body::after {
   width: 600px; height: 400px; pointer-events: none; z-index: 0;
   background: radial-gradient(ellipse, rgba(201,162,39,0.07) 0%, transparent 70%);
 }
-.page { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 0 20px 80px; }
+.page { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 0 20px calc(80px + env(safe-area-inset-bottom)); }
 .page.hidden { display: none; }
 .logo-wrap { display: flex; justify-content: center; margin-bottom: 18px; }
 .logo-svg { filter: drop-shadow(0 0 14px rgba(201,162,39,0.24)); animation: pulseGlow 3.5s ease-in-out infinite; }
@@ -112,8 +112,8 @@ input:focus { border-color: var(--gold-dim); box-shadow: 0 0 0 3px var(--gold-gl
 }
 .btn-login:hover { background: #dbb840; box-shadow: 0 0 24px rgba(201,162,39,0.3); }
 .login-error, .gen-error {
-  margin-top: 12px; background: var(--red); border: 1px solid var(--red-border); border-radius: 5px;
-  padding: 11px 15px; color: var(--red-text); font-family: 'DM Mono', monospace; font-size: 11px; display: none;
+  margin-top: 12px; background: var(--red); border: 1px solid var(--red-border); border-radius: 8px;
+  padding: 12px 15px; color: var(--red-text); font-family: 'Crimson Pro', Georgia, serif; font-size: 16px; line-height: 1.5; display: none;
 }
 .login-error.show, .gen-error.show { display: block; }
 #genPage .site-name { font-size: clamp(24px, 5vw, 44px); }
@@ -151,26 +151,45 @@ input:focus { border-color: var(--gold-dim); box-shadow: 0 0 0 3px var(--gold-gl
 .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; }
 .output-title-label { color: var(--gold); }
 .output-actions { display: flex; gap: 7px; }
-.btn-action {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 7px 13px;
-  font-size: 10px; color: var(--text-muted);
-}
 .btn-action:hover { border-color: var(--gold-dim); color: var(--gold); }
 .btn-action.copied { border-color: var(--green-b); color: var(--green); }
 .output-box {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 22px 26px;
-  white-space: pre-wrap; font-size: 16px; line-height: 1.9; max-height: 62vh; overflow-y: auto; word-break: break-word;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px;
+  white-space: pre-wrap; font-size: 17px; line-height: 1.75; max-height: 70vh; overflow-y: auto; word-break: break-word; overflow-wrap: anywhere;
 }
-.md-output { white-space: normal; }
-.md-output h1, .md-output h2, .md-output h3 { font-family: 'Playfair Display', serif; margin: 1.1em 0 0.4em; }
-.md-output h2 { color: var(--gold); font-size: 1.25em; }
-.md-output p, .md-output li { margin-bottom: 0.6em; }
-.md-output table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0 20px; }
-.md-output th { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
-.md-output td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.md-output { white-space: normal; font-size: 17px; line-height: 1.75; max-height: none; }
+.md-output h1, .md-output h2, .md-output h3 { font-family: 'Playfair Display', serif; margin: 1.25em 0 0.5em; text-wrap: balance; line-height: 1.25; }
+.md-output h1 { font-size: 1.45em; }
+.md-output h2 { color: var(--gold); font-size: 1.28em; }
+.md-output h3 { font-size: 1.12em; }
+.md-output h1:first-child, .md-output h2:first-child, .md-output h3:first-child { margin-top: 0; }
+.md-output p, .md-output li { margin-bottom: 0.85em; text-wrap: pretty; }
+.md-output ul, .md-output ol { padding-left: 1.2em; margin: 0 0 1em; }
+.md-output table { width: 100%; border-collapse: collapse; font-size: 16px; margin: 8px 0 4px; }
+.md-output th { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.md-output td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
 .md-output tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
 .md-output a { color: var(--gold); }
-.md-output blockquote { border-left: 2px solid var(--gold); padding-left: 14px; color: var(--text-muted); font-style: italic; margin: 12px 0; }
+.md-output blockquote { border-left: 2px solid var(--gold); padding: 4px 0 4px 14px; color: var(--text-muted); font-style: italic; margin: 12px 0 18px; }
+.md-output hr { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+.md-output code { font-family: 'DM Mono', monospace; font-size: 0.86em; color: var(--gold); }
+.md-output strong { color: var(--text); font-weight: 600; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 8px 0 22px; }
+.qa-card {
+  display: grid; grid-template-columns: auto 1fr; gap: 10px 12px;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 16px; margin: 0 0 12px;
+}
+.qa-card .n {
+  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em;
+  color: var(--gold); padding-top: 3px;
+}
+.qa-card .qa-body p { margin-bottom: 0.45em; }
+.qa-card .qa-body p:last-child { margin-bottom: 0; }
+.btn-action {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px;
+  font-size: 10px; color: var(--text-muted); min-height: 44px;
+}
 .lesson-card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 22px 20px;
 }
@@ -203,11 +222,11 @@ input:focus { border-color: var(--gold-dim); box-shadow: 0 0 0 3px var(--gold-gl
 .study-btn:hover { border-color: var(--gold-dim); background: var(--surface2); }
 .study-btn.active { border-color: var(--gold); background: var(--surface2); box-shadow: inset 0 0 24px rgba(201,162,39,0.08); }
 .study-btn:disabled { opacity: 0.7; }
-.study-btn .lbl { display: block; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
-.study-btn .blurb { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+.study-btn .lbl { display: block; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.study-btn .blurb { font-size: 15px; color: var(--text-muted); line-height: 1.45; }
 .gemini-box { margin-top: 16px; border: 1px solid rgba(201,162,39,0.25); background: rgba(201,162,39,0.05); border-radius: 8px; padding: 14px; }
 .prompt-links { margin-top: 10px; display: flex; gap: 16px; flex-wrap: wrap; }
-.prompt-links button { background: none; border: none; color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
+.prompt-links button { background: none; border: none; color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; min-height: 44px; padding: 8px 0; }
 .prompt-links button:hover { color: var(--gold); }
 .prompt-pre {
   margin-top: 8px; max-height: 180px; overflow: auto; background: var(--bg); border: 1px solid var(--border);
@@ -215,13 +234,51 @@ input:focus { border-color: var(--gold-dim); box-shadow: 0 0 0 3px var(--gold-gl
 }
 footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: var(--text-faint); }
 .toggle-days { background: none; border: none; width: 100%; display: flex; justify-content: space-between; color: var(--gold); cursor: pointer; padding: 4px 0; }
-@media (max-width: 480px) {
-  .page { padding: 0 14px 60px; }
+@media (max-width: 640px) {
+  .page { padding: 0 16px calc(28px + env(safe-area-inset-bottom)); }
   .provider-grid { gap: 8px; }
   .input-row { flex-direction: column; }
-  .btn-generate { width: 100%; }
-  .output-box { padding: 16px 14px; font-size: 15px; }
+  .btn-generate { width: 100%; min-height: 48px; }
+  .lesson-card { padding: 18px 16px 16px; }
+  .memory p { font-size: 18px; line-height: 1.55; }
+  .lesson-overview { font-size: 16px; line-height: 1.65; color: #cbbfa8; }
+  .day-item .s { font-size: 15px; line-height: 1.5; }
+  .study-btn .blurb { font-size: 15px; }
+  .output-box { padding: 18px 16px; font-size: 17px; line-height: 1.75; max-height: none; }
+  .md-output { font-size: 17px; line-height: 1.75; }
+  .table-wrap { overflow: visible; }
+  .md-output table, .md-output thead, .md-output tbody, .md-output th, .md-output td, .md-output tr { display: block; width: 100%; }
+  .md-output thead { display: none; }
+  .md-output tr {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px 8px;
+    margin: 0 0 14px;
+  }
+  .md-output tr:nth-child(even) td { background: transparent; }
+  .md-output td {
+    border: none;
+    border-top: 1px solid var(--border);
+    padding: 10px 0;
+    display: grid;
+    grid-template-columns: minmax(5.2rem, 32%) 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .md-output td:first-child { border-top: none; padding-top: 2px; }
+  .md-output td::before {
+    content: attr(data-label);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding-top: 3px;
+    line-height: 1.35;
+  }
 }
+@media (max-width: 360px) { .provider-grid { grid-template-columns: 1fr; } }
 @media (max-width: 360px) { .provider-grid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .logo-svg, .loading-bar::after { animation: none; } }
 </style>
@@ -662,7 +719,7 @@ async function runStudy(id){
   err.classList.remove('show');
   const key=getStudyKey();
   if(!key){ err.textContent='Paste your Gemini API key to run this week\'s study.'; err.classList.add('show'); return; }
-  if(!looksLikeKey('gemini',key)){ err.textContent='That doesn\'t look like a Gemini key. It should start with AIza…'; err.classList.add('show'); return; }
+  if(!looksLikeKey('gemini',key)){ err.textContent='That doesn\'t look like a Gemini key. New keys start with AQ. Older keys start with AIza.'; err.classList.add('show'); return; }
   activeStudy=id; showPrompt=false;
   document.querySelectorAll('.study-btn').forEach(b=>b.classList.remove('active'));
   const btn=document.getElementById('btn-'+id); if(btn) btn.classList.add('active');
@@ -695,31 +752,42 @@ function downloadStudy(){
   const a=Object.assign(document.createElement('a'),{ href:URL.createObjectURL(new Blob([lastStudy],{type:'text/plain'})), download:'lesson-'+currentLesson.number+'-'+slug+'-'+(activeStudy||'study')+'.md' });
   a.click(); URL.revokeObjectURL(a.href);
 }
-function esc(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
+function esc(s){ return String(s||'').replace(/[&<>"']/g, c => {if(c==='&') return '&amp;';if(c==='<') return '&lt;';if(c==='>') return '&gt;';if(c==='"') return '&quot;';return '&#39;';}); }
 function renderMarkdown(src){
   let text=src.replace(/\r\n/g,'\n');
-  text=text.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+  text=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const blocks=text.split(/\n\n+/);
   return blocks.map(block=>{
-    const lines=block.split('\n');
-    if(lines.some(l=>/^\|/.test(l) && /\|$/.test(l.trim()))){
+    const lines=block.split('\n').filter((l,i,a)=>!(i===0&&!l)&&!(i===a.length-1&&!l));
+    if(!lines.length) return '';
+    if(lines.some(l=>/^\|/.test(l))){
       const rows=lines.filter(l=>l.trim());
-      const htmlRows=rows.filter(r=>!/^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?$/.test(r.trim())).map((r,i)=>{
-        const cells=r.replace(/^\|/,'').replace(/\|$/,'').split('|').map(c=>inline(c.trim()));
-        const tag=i===0?'th':'td';
-        return '<tr>'+cells.map(c=>'<'+tag+'>'+c+'</'+tag+'>').join('')+'</tr>';
-      }).join('');
-      return '<div style="overflow-x:auto"><table>'+htmlRows+'</table></div>';
+      const parsed=rows.filter(r=>!/^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?$/.test(r.trim())).map(r=>r.replace(/^\|/,'').replace(/\|$/,'').split('|').map(c=>c.trim()));
+      if(!parsed.length) return '<p>'+inline(block)+'</p>';
+      const headers=parsed[0];
+      const body=parsed.slice(1);
+      const head='<thead><tr>'+headers.map(h=>'<th>'+inline(h)+'</th>').join('')+'</tr></thead>';
+      const bodyHtml='<tbody>'+body.map(cells=>'<tr>'+cells.map((c,i)=>'<td data-label="'+escAttr(headers[i]||'')+'">'+inline(c)+'</td>').join('')+'</tr>').join('')+'</tbody>';
+      return '<div class="table-wrap"><table>'+head+bodyHtml+'</table></div>';
     }
     if(/^### /.test(block)) return '<h3>'+inline(block.replace(/^### /,''))+'</h3>';
     if(/^## /.test(block)) return '<h2>'+inline(block.replace(/^## /,''))+'</h2>';
     if(/^# /.test(block)) return '<h1>'+inline(block.replace(/^# /,''))+'</h1>';
     if(lines.every(l=>/^[-*] /.test(l))) return '<ul>'+lines.map(l=>'<li>'+inline(l.replace(/^[-*] /,''))+'</li>').join('')+'</ul>';
-    if(lines.every(l=>/^\d+\. /.test(l))) return '<ol>'+lines.map(l=>'<li>'+inline(l.replace(/^\d+\. /,''))+'</li>').join('')+'</ol>';
+    if(lines.length>1 && lines.every(l=>/^\d+\. /.test(l))) return '<ol>'+lines.map(l=>'<li>'+inline(l.replace(/^\d+\. /,''))+'</li>').join('')+'</ol>';
+    if(/^\d+\.\s/.test(block.trim())){
+      const m=block.trim().match(/^(\d+)\.\s+([\s\S]*)$/);
+      if(m){
+        const body=m[2].split('\n').map(l=>'<p>'+inline(l)+'</p>').join('');
+        return '<article class="qa-card"><span class="n">'+m[1]+'</span><div class="qa-body">'+body+'</div></article>';
+      }
+    }
     if(/^> /.test(block)) return '<blockquote>'+inline(block.replace(/^> /gm,''))+'</blockquote>';
+    if(/^---+$/.test(block.trim())) return '<hr>';
     return '<p>'+lines.map(inline).join('<br>')+'</p>';
   }).join('');
 }
+function escAttr(s){ return String(s||'').replace(/[&<>"']/g, c => {if(c==='&') return '&amp;';if(c==='<') return '&lt;';if(c==='>') return '&gt;';if(c==='"') return '&quot;';return '&#39;';}); }
 function inline(s){
   return s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
