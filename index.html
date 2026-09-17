@@ -4,887 +4,320 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>End Times Faith — Script Generator</title>
+<meta name="description" content="Prophetic scripts and this week's SDA Sabbath School lesson study, powered by your Gemini API key.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════
-   TOKENS
-═══════════════════════════════════════ */
 :root {
-  --bg:          #080808;
-  --surface:     #111111;
-  --surface2:    #181818;
-  --border:      #252525;
-  --border2:     #303030;
-  --gold:        #c9a227;
-  --gold-dim:    #7a5f10;
-  --gold-glow:   rgba(201,162,39,0.14);
-  --gold-soft:   rgba(201,162,39,0.07);
-  --text:        #e8e0d0;
-  --text-muted:  #7a7060;
-  --text-faint:  #2e2820;
-  --red:         rgba(180,50,40,0.12);
-  --red-border:  rgba(180,50,40,0.35);
-  --red-text:    #d07060;
-  --green:       #4aaa5a;
-  --green-b:     #2a7a3a;
+  --bg: #080808; --surface: #111111; --surface2: #181818;
+  --border: #252525; --border2: #303030;
+  --gold: #c9a227; --gold-dim: #7a5f10; --gold-glow: rgba(201,162,39,0.14); --gold-soft: rgba(201,162,39,0.07);
+  --text: #e8e0d0; --text-muted: #7a7060; --text-faint: #4a4438;
+  --red: rgba(180,50,40,0.12); --red-border: rgba(180,50,40,0.35); --red-text: #d07060;
+  --green: #4aaa5a; --green-b: #2a7a3a;
 }
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 18px;
-  line-height: 1.65;
-  min-height: 100vh;
-  overflow-x: hidden;
+  background: var(--bg); color: var(--text);
+  font-family: 'Crimson Pro', Georgia, serif; font-size: 18px; line-height: 1.65;
+  min-height: 100vh; overflow-x: hidden;
 }
-
-/* grain */
 body::before {
-  content: '';
-  position: fixed; inset: 0;
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none; z-index: 0;
 }
-/* top glow */
 body::after {
-  content: '';
-  position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
-  width: 600px; height: 400px;
+  content: ''; position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 400px; pointer-events: none; z-index: 0;
   background: radial-gradient(ellipse, rgba(201,162,39,0.07) 0%, transparent 70%);
-  pointer-events: none; z-index: 0;
 }
-
-/* ═══════════════════════════════════════
-   SHARED
-═══════════════════════════════════════ */
-.page {
-  position: relative; z-index: 1;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 0 20px 80px;
-  transition: opacity 0.35s ease, transform 0.35s ease;
-}
-
-.page.hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(12px);
-  position: absolute;
-  top: 0; left: 20px; right: 20px;
-}
-
-/* Logo */
+.page { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 0 20px 80px; }
+.page.hidden { display: none; }
 .logo-wrap { display: flex; justify-content: center; margin-bottom: 18px; }
-
-.logo-svg {
-  filter: drop-shadow(0 0 14px rgba(201,162,39,0.24));
-  animation: pulseGlow 3.5s ease-in-out infinite;
-}
+.logo-svg { filter: drop-shadow(0 0 14px rgba(201,162,39,0.24)); animation: pulseGlow 3.5s ease-in-out infinite; }
 @keyframes pulseGlow {
   0%,100% { filter: drop-shadow(0 0 12px rgba(201,162,39,0.2)); }
-  50%      { filter: drop-shadow(0 0 26px rgba(201,162,39,0.45)); }
+  50% { filter: drop-shadow(0 0 26px rgba(201,162,39,0.45)); }
 }
-
-.site-name {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
-  color: var(--text);
-}
+.site-name { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; letter-spacing: -0.02em; line-height: 1.05; color: var(--text); }
 .site-name span { color: var(--gold); }
-
-.tagline {
-  font-size: 15px;
-  font-weight: 300;
-  font-style: italic;
-  color: var(--text-muted);
-  margin-top: 8px;
-}
-
-header {
-  padding: 44px 0 32px;
-  text-align: center;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 40px;
-}
-
-.mono {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.ornament {
-  display: flex; align-items: center; gap: 10px;
-  margin: 26px 0; color: var(--gold-dim); font-size: 13px;
-}
-.ornament::before { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--gold-dim)); }
-.ornament::after  { content: ''; flex: 1; height: 1px; background: linear-gradient(to left,  transparent, var(--gold-dim)); }
-
-/* ═══════════════════════════════════════
-   LOGIN PAGE
-═══════════════════════════════════════ */
+.tagline { font-size: 15px; font-weight: 300; font-style: italic; color: var(--text-muted); margin-top: 8px; }
+header { padding: 44px 0 32px; text-align: center; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+.mono { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; }
+.ornament { display: flex; align-items: center; gap: 10px; margin: 26px 0; color: var(--gold-dim); font-size: 13px; }
+.ornament::before, .ornament::after { content: ''; flex: 1; height: 1px; }
+.ornament::before { background: linear-gradient(to right, transparent, var(--gold-dim)); }
+.ornament::after { background: linear-gradient(to left, transparent, var(--gold-dim)); }
 #loginPage .site-name { font-size: clamp(26px, 5.5vw, 48px); }
-
-.login-intro {
-  text-align: center;
-  margin-bottom: 28px;
+.login-intro { text-align: center; margin-bottom: 20px; }
+.login-intro p { font-size: 16px; color: var(--text-muted); max-width: 480px; margin: 0 auto; line-height: 1.55; }
+.week-teaser {
+  max-width: 520px; margin: 0 auto 28px; text-align: center;
+  border: 1px solid rgba(201,162,39,0.2); background: rgba(201,162,39,0.05);
+  border-radius: 12px; padding: 14px 16px;
 }
-.login-intro p {
-  font-size: 16px;
-  color: var(--text-muted);
-  max-width: 480px;
-  margin: 0 auto;
-  line-height: 1.55;
-}
-
-/* Provider cards */
-.providers-label {
-  display: block;
-  color: var(--gold);
-  margin-bottom: 12px;
-}
-
-.provider-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 24px;
-}
-
+.week-teaser h2 { font-family: 'Playfair Display', serif; font-size: 18px; margin-top: 4px; }
+.week-teaser p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.providers-label { display: block; color: var(--gold); margin-bottom: 12px; }
+.provider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
 .provider-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  position: relative;
-  -webkit-tap-highlight-color: transparent;
+  background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px;
+  position: relative; transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
-
-.provider-card:hover {
-  background: var(--surface2);
-  border-color: var(--gold-dim);
-}
-
-.provider-card.selected {
-  border-color: var(--gold);
-  background: var(--surface2);
-  box-shadow: 0 0 0 1px var(--gold-dim), inset 0 0 24px var(--gold-soft);
-}
-
+.provider-card:hover { background: var(--surface2); border-color: var(--gold-dim); }
+.provider-card.selected { border-color: var(--gold); background: var(--surface2); box-shadow: 0 0 0 1px var(--gold-dim), inset 0 0 24px var(--gold-soft); }
 .provider-card .check {
-  position: absolute;
-  top: 10px; right: 12px;
-  width: 16px; height: 16px;
-  border-radius: 50%;
+  position: absolute; top: 10px; right: 12px; width: 16px; height: 16px; border-radius: 50%;
   border: 1.5px solid var(--border2);
-  background: transparent;
-  transition: all 0.2s;
-  flex-shrink: 0;
 }
-.provider-card.selected .check {
-  background: var(--gold);
-  border-color: var(--gold);
-  box-shadow: 0 0 6px rgba(201,162,39,0.4);
-}
-.provider-card.selected .check::after {
-  content: '';
-  display: block;
-  width: 5px; height: 8px;
-  border: 1.5px solid #050505;
-  border-top: none; border-left: none;
-  transform: rotate(42deg) translate(1px, -1px);
-  margin: 2px auto 0;
-}
-
-.provider-icon {
-  font-size: 22px;
-  line-height: 1;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.provider-info { flex: 1; min-width: 0; }
-
-.provider-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-
-.provider-model {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-  word-break: break-all;
-}
-
-.provider-badge {
-  display: inline-block;
-  font-family: 'DM Mono', monospace;
-  font-size: 8px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 100px;
-  font-weight: 500;
-}
+.provider-card.selected .check { background: var(--gold); border-color: var(--gold); }
+.provider-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; }
+.provider-model { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: var(--text-muted); margin: 2px 0 4px; word-break: break-all; }
+.provider-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 7px; border-radius: 100px; }
 .badge-free { background: rgba(74,170,90,0.12); color: var(--green); border: 1px solid rgba(74,170,90,0.25); }
-.badge-paid { background: rgba(201,162,39,0.1);  color: var(--gold);  border: 1px solid rgba(201,162,39,0.2); }
-
-/* API key field */
+.badge-paid { background: rgba(201,162,39,0.1); color: var(--gold); border: 1px solid rgba(201,162,39,0.2); }
+.badge-rec { background: rgba(201,162,39,0.1); color: var(--gold); border: 1px solid rgba(201,162,39,0.2); margin-left: 6px; }
 .key-group { margin-bottom: 20px; }
-
-.key-group label {
-  display: block;
-  color: var(--gold);
-  margin-bottom: 8px;
+.key-group label, .field-label { display: block; color: var(--gold); margin-bottom: 8px; }
+.key-input-wrap { position: relative; }
+.key-input-wrap input, input[type="text"], input[type="password"] {
+  width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 5px;
+  padding: 13px 46px 13px 16px; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text);
+  outline: none; caret-color: var(--gold);
 }
-
-.key-row {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-
-.key-input-wrap {
-  flex: 1;
-  position: relative;
-}
-
-.key-input-wrap input {
-  width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 13px 46px 13px 16px;
-  font-family: 'DM Mono', monospace;
-  font-size: 13px;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  caret-color: var(--gold);
-  -webkit-appearance: none;
-  letter-spacing: 0.04em;
-}
-
-.key-input-wrap input::placeholder {
-  color: var(--text-faint);
-  font-style: normal;
-  letter-spacing: 0;
-}
-
-.key-input-wrap input:focus {
-  border-color: var(--gold-dim);
-  box-shadow: 0 0 0 3px var(--gold-glow);
-}
-
-.eye-btn {
-  position: absolute;
-  right: 12px; top: 50%;
-  transform: translateY(-50%);
-  background: none; border: none;
-  color: var(--text-muted);
-  cursor: pointer; padding: 4px;
-  font-size: 14px; line-height: 1;
-}
-.eye-btn:hover { color: var(--text); }
-
-/* where to get key hint */
-.key-hint {
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-.key-hint a {
-  color: var(--gold-dim);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 0.2s;
-}
+input[type="text"] { font-family: 'Crimson Pro', Georgia, serif; font-size: 19px; padding: 13px 17px; }
+input::placeholder { color: var(--text-faint); font-style: italic; }
+input:focus { border-color: var(--gold-dim); box-shadow: 0 0 0 3px var(--gold-glow); }
+.eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; }
+.key-hint { margin-top: 8px; font-size: 13px; color: var(--text-muted); }
+.key-hint a { color: var(--gold-dim); text-underline-offset: 2px; }
 .key-hint a:hover { color: var(--gold); }
-
-/* remember me */
-.remember-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 22px;
-  cursor: pointer;
-  user-select: none;
-}
-
+.remember-row { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; cursor: pointer; user-select: none; }
 .remember-row input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 16px; height: 16px;
-  border: 1.5px solid var(--border2);
-  border-radius: 3px;
-  background: var(--surface);
-  cursor: pointer;
-  flex-shrink: 0;
-  position: relative;
-  transition: all 0.2s;
+  appearance: none; width: 16px; height: 16px; border: 1.5px solid var(--border2); border-radius: 3px; background: var(--surface); cursor: pointer; position: relative;
 }
-.remember-row input[type="checkbox"]:checked {
-  background: var(--gold);
-  border-color: var(--gold);
-}
+.remember-row input[type="checkbox"]:checked { background: var(--gold); border-color: var(--gold); }
 .remember-row input[type="checkbox"]:checked::after {
-  content: '';
-  position: absolute;
-  left: 3px; top: 0px;
-  width: 5px; height: 9px;
-  border: 1.5px solid #050505;
-  border-top: none; border-left: none;
-  transform: rotate(42deg);
+  content: ''; position: absolute; left: 3px; top: 0; width: 5px; height: 9px;
+  border: 1.5px solid #050505; border-top: none; border-left: none; transform: rotate(42deg);
 }
-
-.remember-row span {
-  font-size: 14px;
-  color: var(--text-muted);
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.remember-row span { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.btn-login, .btn-generate, .btn-action, .btn-switch {
+  font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
 }
-
-/* login button */
 .btn-login {
-  width: 100%;
-  background: var(--gold);
-  color: #060606;
-  border: none;
-  border-radius: 6px;
-  padding: 16px;
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  width: 100%; background: var(--gold); color: #060606; border: none; border-radius: 6px; padding: 16px; font-size: 12px;
 }
-.btn-login:hover {
-  background: #dbb840;
-  box-shadow: 0 0 24px rgba(201,162,39,0.3);
+.btn-login:hover { background: #dbb840; box-shadow: 0 0 24px rgba(201,162,39,0.3); }
+.login-error, .gen-error {
+  margin-top: 12px; background: var(--red); border: 1px solid var(--red-border); border-radius: 5px;
+  padding: 11px 15px; color: var(--red-text); font-family: 'DM Mono', monospace; font-size: 11px; display: none;
 }
-.btn-login:active { transform: scale(0.98); }
-
-.login-error {
-  margin-top: 12px;
-  background: var(--red);
-  border: 1px solid var(--red-border);
-  border-radius: 5px;
-  padding: 11px 15px;
-  color: var(--red-text);
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  display: none;
-}
-.login-error.show { display: block; }
-
-/* ═══════════════════════════════════════
-   GENERATOR PAGE
-═══════════════════════════════════════ */
+.login-error.show, .gen-error.show { display: block; }
 #genPage .site-name { font-size: clamp(24px, 5vw, 44px); }
-
-/* session bar */
 .session-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 28px;
-  padding: 10px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 28px; padding: 10px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; flex-wrap: wrap;
 }
-.session-info {
-  display: flex; align-items: center; gap: 8px;
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-}
-.session-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 6px rgba(201,162,39,0.5);
-  flex-shrink: 0;
-}
-.btn-switch {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 5px 12px;
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
+.session-info { display: flex; align-items: center; gap: 8px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--text-muted); }
+.session-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 6px rgba(201,162,39,0.5); }
+.btn-switch { background: none; border: 1px solid var(--border); border-radius: 4px; padding: 5px 12px; font-size: 9px; color: var(--text-muted); }
 .btn-switch:hover { border-color: var(--gold-dim); color: var(--gold); }
-
-/* input */
-.input-section { margin-bottom: 24px; }
-
-.field-label {
-  display: block;
-  color: var(--gold);
-  margin-bottom: 9px;
-}
-
-.input-row {
-  display: flex; gap: 10px; align-items: stretch;
-}
-
-input[type="text"] {
-  flex: 1; min-width: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 13px 17px;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 19px;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  caret-color: var(--gold);
-  -webkit-appearance: none;
-}
-input[type="text"]::placeholder { color: var(--text-faint); font-style: italic; }
-input[type="text"]:focus {
-  border-color: var(--gold-dim);
-  box-shadow: 0 0 0 3px var(--gold-glow);
-}
-
+.input-row { display: flex; gap: 10px; align-items: stretch; }
 .btn-generate {
-  background: var(--gold);
-  color: #060606;
-  border: none;
-  border-radius: 5px;
-  padding: 13px 22px;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  background: var(--gold); color: #060606; border: none; border-radius: 5px; padding: 13px 22px; font-size: 11px; white-space: nowrap;
 }
-.btn-generate:hover {
-  background: #dbb840;
-  box-shadow: 0 0 20px rgba(201,162,39,0.3);
-}
-.btn-generate:active { transform: scale(0.97); }
-.btn-generate:disabled { background: var(--gold-dim); cursor: not-allowed; box-shadow: none; }
-
-/* pills */
-.examples {
-  margin-top: 11px;
-  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
-}
-.examples-label { color: var(--text-faint); }
+.btn-generate:hover { background: #dbb840; box-shadow: 0 0 20px rgba(201,162,39,0.3); }
+.btn-generate:disabled { background: var(--gold-dim); cursor: not-allowed; }
+.examples { margin-top: 11px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .pill {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 100px;
-  padding: 4px 13px;
-  font-size: 14px;
-  font-style: italic;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: 'Crimson Pro', serif;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 4px 13px;
+  font-size: 14px; font-style: italic; color: var(--text-muted); cursor: pointer;
 }
-.pill:hover, .pill:active {
-  border-color: var(--gold-dim);
-  color: var(--text);
-  background: var(--surface2);
-}
-
-/* loading */
-.loading-bar {
-  display: none; height: 2px;
-  background: var(--border);
-  border-radius: 2px;
-  margin: 18px 0 6px;
-  overflow: hidden;
-}
+.pill:hover { border-color: var(--gold-dim); color: var(--text); }
+.loading-bar { display: none; height: 2px; background: var(--border); border-radius: 2px; margin: 18px 0 6px; overflow: hidden; }
 .loading-bar.active { display: block; }
 .loading-bar::after {
   content: ''; display: block; height: 100%; width: 38%;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  animation: shimmer 1.4s infinite;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent); animation: shimmer 1.4s infinite;
 }
-@keyframes shimmer {
-  0%   { transform: translateX(-160%); }
-  100% { transform: translateX(380%); }
-}
-
-.status-text {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.09em;
-  color: var(--text-muted);
-  text-align: center;
-  min-height: 16px;
-  margin-bottom: 4px;
-}
-
-/* output */
-.output-wrapper { display: none; animation: fadeUp 0.35s ease; }
-.output-wrapper.visible { display: block; }
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.output-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+@keyframes shimmer { 0% { transform: translateX(-160%); } 100% { transform: translateX(380%); } }
+.status-text { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.09em; color: var(--text-muted); text-align: center; min-height: 16px; }
+.output-wrapper { display: none; }
+.output-wrapper.visible { display: block; animation: fadeUp 0.35s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; }
 .output-title-label { color: var(--gold); }
-
 .output-actions { display: flex; gap: 7px; }
-
 .btn-action {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 7px 13px;
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 7px 13px;
+  font-size: 10px; color: var(--text-muted);
 }
 .btn-action:hover { border-color: var(--gold-dim); color: var(--gold); }
 .btn-action.copied { border-color: var(--green-b); color: var(--green); }
-
 .output-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 22px 26px;
-  white-space: pre-wrap;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 16px;
-  line-height: 1.9;
-  color: var(--text);
-  max-height: 62vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-  word-break: break-word;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 22px 26px;
+  white-space: pre-wrap; font-size: 16px; line-height: 1.9; max-height: 62vh; overflow-y: auto; word-break: break-word;
 }
-.output-box::-webkit-scrollbar { width: 4px; }
-.output-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-.gen-error {
-  display: none;
-  background: var(--red);
-  border: 1px solid var(--red-border);
-  border-radius: 5px;
-  padding: 12px 16px;
-  color: var(--red-text);
-  margin-top: 12px;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.05em;
+.md-output { white-space: normal; }
+.md-output h1, .md-output h2, .md-output h3 { font-family: 'Playfair Display', serif; margin: 1.1em 0 0.4em; }
+.md-output h2 { color: var(--gold); font-size: 1.25em; }
+.md-output p, .md-output li { margin-bottom: 0.6em; }
+.md-output table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0 20px; }
+.md-output th { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.md-output td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.md-output tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.md-output a { color: var(--gold); }
+.md-output blockquote { border-left: 2px solid var(--gold); padding-left: 14px; color: var(--text-muted); font-style: italic; margin: 12px 0; }
+.lesson-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 22px 20px;
 }
-.gen-error.show { display: block; }
-
-/* footer */
-footer {
-  margin-top: 56px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-  text-align: center;
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  color: var(--text-faint);
+.lesson-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.lesson-title { font-family: 'Playfair Display', serif; font-size: clamp(26px, 4vw, 36px); font-weight: 700; line-height: 1.15; margin: 6px 0 14px; }
+.memory { border-left: 2px solid rgba(201,162,39,0.5); padding-left: 16px; margin: 12px 0 16px; }
+.memory p { font-size: 17px; font-style: italic; }
+.memory cite { display: block; margin-top: 8px; font-style: normal; color: var(--gold); }
+.lesson-overview { font-size: 15px; color: var(--text-muted); margin-bottom: 12px; }
+.day-list { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 8px; }
+.day-item { padding: 12px 14px; border-bottom: 1px solid var(--border); background: rgba(24,24,24,0.5); }
+.day-item:last-child { border-bottom: none; }
+.day-item .d { color: var(--gold); margin-right: 8px; }
+.day-item .t { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15px; }
+.day-item .s { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.source-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.source-row a {
+  display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 100px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); text-decoration: none;
+  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
 }
-
-/* ═══════════════════════════════════════
-   MOBILE
-═══════════════════════════════════════ */
+.source-row a:hover { border-color: var(--gold-dim); color: var(--gold); }
+.study-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 16px; }
+@media (min-width: 640px) { .study-grid { grid-template-columns: 1fr 1fr 1fr; } }
+.study-btn {
+  min-height: 108px; text-align: left; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; cursor: pointer; color: inherit; font: inherit;
+  transition: border-color 0.2s, background 0.2s;
+}
+.study-btn:hover { border-color: var(--gold-dim); background: var(--surface2); }
+.study-btn.active { border-color: var(--gold); background: var(--surface2); box-shadow: inset 0 0 24px rgba(201,162,39,0.08); }
+.study-btn:disabled { opacity: 0.7; }
+.study-btn .lbl { display: block; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.study-btn .blurb { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+.gemini-box { margin-top: 16px; border: 1px solid rgba(201,162,39,0.25); background: rgba(201,162,39,0.05); border-radius: 8px; padding: 14px; }
+.prompt-links { margin-top: 10px; display: flex; gap: 16px; flex-wrap: wrap; }
+.prompt-links button { background: none; border: none; color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
+.prompt-links button:hover { color: var(--gold); }
+.prompt-pre {
+  margin-top: 8px; max-height: 180px; overflow: auto; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 12px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); white-space: pre-wrap;
+}
+footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: var(--text-faint); }
+.toggle-days { background: none; border: none; width: 100%; display: flex; justify-content: space-between; color: var(--gold); cursor: pointer; padding: 4px 0; }
 @media (max-width: 480px) {
   .page { padding: 0 14px 60px; }
-  header { padding: 32px 0 24px; margin-bottom: 28px; }
-  .logo-svg { width: 58px !important; height: 58px !important; }
-
-  .provider-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .provider-card { padding: 11px 12px; gap: 9px; }
-  .provider-icon { font-size: 18px; }
-  .provider-name { font-size: 13px; }
-  .provider-model { font-size: 8px; }
-
+  .provider-grid { gap: 8px; }
   .input-row { flex-direction: column; }
-  .btn-generate { width: 100%; padding: 14px; }
-  input[type="text"] { font-size: 17px; }
-
-  .output-box { padding: 16px 14px; font-size: 15px; max-height: 52vh; }
-  .btn-action { font-size: 9px; padding: 6px 10px; }
-  .session-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .btn-generate { width: 100%; }
+  .output-box { padding: 16px 14px; font-size: 15px; }
 }
-
-@media (max-width: 360px) {
-  .provider-grid { grid-template-columns: 1fr; }
-}
-
-@keyframes shakeInput {
-  0%,100%{ transform: translateX(0); }
-  20%    { transform: translateX(-5px); }
-  40%    { transform: translateX(5px); }
-  60%    { transform: translateX(-3px); }
-  80%    { transform: translateX(3px); }
-}
+@media (max-width: 360px) { .provider-grid { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .logo-svg, .loading-bar::after { animation: none; } }
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════
-     LOGIN PAGE
-══════════════════════════════════ -->
 <div class="page" id="loginPage">
   <header>
-    <div class="logo-wrap">
-      <svg class="logo-svg" width="74" height="74" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-label="End Times Faith logo">
-        <defs>
-          <radialGradient id="glB" cx="50%" cy="50%" r="50%">
-            <stop offset="0%"   stop-color="#c9a227" stop-opacity="0.18"/>
-            <stop offset="100%" stop-color="#c9a227" stop-opacity="0"/>
-          </radialGradient>
-          <linearGradient id="cG" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%"   stop-color="#e8c84a"/>
-            <stop offset="100%" stop-color="#a07010"/>
-          </linearGradient>
-          <linearGradient id="hG" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%"   stop-color="#c9a227" stop-opacity="0.9"/>
-            <stop offset="100%" stop-color="#7a5510" stop-opacity="0.7"/>
-          </linearGradient>
-          <filter id="sg" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="2.5" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <circle cx="40" cy="40" r="38" fill="url(#glB)"/>
-        <circle cx="40" cy="40" r="36" fill="none" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.35"/>
-        <g filter="url(#sg)">
-          <polygon points="26,16 54,16 46,37 34,37" fill="url(#hG)" opacity="0.85"/>
-          <polygon points="34,43 46,43 54,64 26,64" fill="url(#hG)" opacity="0.65"/>
-          <line x1="34" y1="37" x2="46" y2="37" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.6"/>
-          <line x1="34" y1="43" x2="46" y2="43" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.6"/>
-          <rect x="24" y="13" width="32" height="4" rx="1.5" fill="url(#cG)"/>
-          <rect x="24" y="63" width="32" height="4" rx="1.5" fill="url(#cG)" opacity="0.7"/>
-          <circle cx="40" cy="47" r="1.8" fill="#e8c84a" opacity="0.9"/>
-        </g>
-        <g filter="url(#sg)">
-          <rect x="38.2" y="28" width="3.6" height="24" rx="1" fill="url(#cG)"/>
-          <rect x="30"   y="35" width="20"  height="3.6" rx="1" fill="url(#cG)"/>
-        </g>
-        <g stroke="#c9a227" stroke-width="0.9" stroke-linecap="round" stroke-opacity="0.55">
-          <line x1="40" y1="4"  x2="40"   y2="9"/>
-          <line x1="52" y1="7"  x2="49.5" y2="11"/>
-          <line x1="28" y1="7"  x2="30.5" y2="11"/>
-          <line x1="60" y1="16" x2="56.5" y2="18.5"/>
-          <line x1="20" y1="16" x2="23.5" y2="18.5"/>
-        </g>
-      </svg>
-    </div>
+    <div class="logo-wrap"><svg class="logo-svg" width="74" height="74" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-label="End Times Faith logo">
+    <defs>
+      <radialGradient id="gl74" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#c9a227" stop-opacity="0.18"/><stop offset="100%" stop-color="#c9a227" stop-opacity="0"/></radialGradient>
+      <linearGradient id="c74" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#e8c84a"/><stop offset="100%" stop-color="#a07010"/></linearGradient>
+      <linearGradient id="h74" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#c9a227" stop-opacity="0.9"/><stop offset="100%" stop-color="#7a5510" stop-opacity="0.7"/></linearGradient>
+    </defs>
+    <circle cx="40" cy="40" r="38" fill="url(#gl74)"/>
+    <circle cx="40" cy="40" r="36" fill="none" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.35"/>
+    <polygon points="26,16 54,16 46,37 34,37" fill="url(#h74)" opacity="0.85"/>
+    <polygon points="34,43 46,43 54,64 26,64" fill="url(#h74)" opacity="0.65"/>
+    <line x1="34" y1="37" x2="46" y2="37" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.6"/>
+    <line x1="34" y1="43" x2="46" y2="43" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.6"/>
+    <rect x="24" y="13" width="32" height="4" rx="1.5" fill="url(#c74)"/>
+    <rect x="24" y="63" width="32" height="4" rx="1.5" fill="url(#c74)" opacity="0.7"/>
+    <circle cx="40" cy="47" r="1.8" fill="#e8c84a" opacity="0.9"/>
+    <rect x="38.2" y="28" width="3.6" height="24" rx="1" fill="url(#c74)"/>
+    <rect x="30" y="35" width="20" height="3.6" rx="1" fill="url(#c74)"/>
+    <g stroke="#c9a227" stroke-width="0.9" stroke-linecap="round" stroke-opacity="0.55">
+      <line x1="40" y1="4" x2="40" y2="9"/><line x1="52" y1="7" x2="49.5" y2="11"/><line x1="28" y1="7" x2="30.5" y2="11"/>
+      <line x1="60" y1="16" x2="56.5" y2="18.5"/><line x1="20" y1="16" x2="23.5" y2="18.5"/>
+    </g>
+  </svg></div>
     <div class="site-name">End Times <span>Faith</span></div>
     <p class="tagline">Connect your AI to begin generating scripts</p>
   </header>
-
   <div class="login-intro">
-    <p>Choose your AI provider and paste your API key below. Your key is stored only in your browser and never sent anywhere except directly to the provider you choose.</p>
+    <p>Choose your AI provider and paste your API key. Your key stays in this browser and is sent only to the provider you choose.</p>
   </div>
-
+  <div class="week-teaser" id="weekTeaser"></div>
   <div class="ornament">✦</div>
-
-  <!-- Provider picker -->
   <span class="mono providers-label">1 — Choose a provider</span>
-
-  <div class="provider-grid" id="providerGrid">
-
-    <div class="provider-card selected" data-provider="anthropic" onclick="selectProvider(this)">
-      <span class="provider-icon">🟤</span>
-      <div class="provider-info">
-        <div class="provider-name">Claude</div>
-        <div class="provider-model">claude-sonnet-4</div>
-        <span class="provider-badge badge-paid">Paid key</span>
-      </div>
-      <div class="check"></div>
-    </div>
-
-    <div class="provider-card" data-provider="openai" onclick="selectProvider(this)">
-      <span class="provider-icon">🟢</span>
-      <div class="provider-info">
-        <div class="provider-name">ChatGPT</div>
-        <div class="provider-model">gpt-4o-mini</div>
-        <span class="provider-badge badge-paid">Paid key</span>
-      </div>
-      <div class="check"></div>
-    </div>
-
-    <div class="provider-card" data-provider="groq" onclick="selectProvider(this)">
-      <span class="provider-icon">⚡</span>
-      <div class="provider-info">
-        <div class="provider-name">Groq</div>
-        <div class="provider-model">llama-3.3-70b</div>
-        <span class="provider-badge badge-free">Free tier</span>
-      </div>
-      <div class="check"></div>
-    </div>
-
-    <div class="provider-card" data-provider="openrouter" onclick="selectProvider(this)">
-      <span class="provider-icon">🌐</span>
-      <div class="provider-info">
-        <div class="provider-name">OpenRouter</div>
-        <div class="provider-model">llama-3.1-8b:free</div>
-        <span class="provider-badge badge-free">Free tier</span>
-      </div>
-      <div class="check"></div>
-    </div>
-
-  </div>
-
-  <!-- API Key -->
+  <div class="provider-grid" id="providerGrid"></div>
   <div class="key-group">
     <span class="mono field-label">2 — Paste your API key</span>
-    <div class="key-row">
-      <div class="key-input-wrap">
-        <input type="password" id="apiKeyInput" placeholder="sk-…" autocomplete="off" spellcheck="false"/>
-        <button class="eye-btn" onclick="toggleKeyVis()" title="Show/hide key">👁</button>
-      </div>
+    <div class="key-input-wrap">
+      <input type="password" id="apiKeyInput" placeholder="AIza…" autocomplete="off" spellcheck="false"/>
+      <button class="eye-btn" type="button" onclick="toggleKeyVis()" title="Show/hide key">Show</button>
     </div>
-    <div class="key-hint" id="keyHint">
-      Get a free key at <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a> — no credit card needed.
-    </div>
+    <div class="key-hint" id="keyHint"></div>
   </div>
-
-  <!-- Remember -->
   <label class="remember-row">
     <input type="checkbox" id="rememberMe" checked>
     <span>Remember my key on this device</span>
   </label>
-
-  <button class="btn-login" onclick="doLogin()">⚡ Connect &amp; Start</button>
+  <button class="btn-login" onclick="doLogin()">Connect & Start</button>
   <div class="login-error" id="loginError"></div>
-
-  <footer>End Times Faith &nbsp;·&nbsp; Script Generator &nbsp;·&nbsp; Keys stored locally only</footer>
+  <footer>End Times Faith · Script Generator · Keys stored locally only</footer>
 </div>
 
-<!-- ══════════════════════════════════
-     GENERATOR PAGE
-══════════════════════════════════ -->
 <div class="page hidden" id="genPage">
   <header>
-    <div class="logo-wrap">
-      <svg class="logo-svg" width="66" height="66" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-label="End Times Faith logo">
-        <defs>
-          <radialGradient id="glB2" cx="50%" cy="50%" r="50%">
-            <stop offset="0%"   stop-color="#c9a227" stop-opacity="0.18"/>
-            <stop offset="100%" stop-color="#c9a227" stop-opacity="0"/>
-          </radialGradient>
-          <linearGradient id="cG2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%"   stop-color="#e8c84a"/>
-            <stop offset="100%" stop-color="#a07010"/>
-          </linearGradient>
-          <linearGradient id="hG2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%"   stop-color="#c9a227" stop-opacity="0.9"/>
-            <stop offset="100%" stop-color="#7a5510" stop-opacity="0.7"/>
-          </linearGradient>
-          <filter id="sg2" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="2.5" result="b2"/>
-            <feMerge><feMergeNode in="b2"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <circle cx="40" cy="40" r="38" fill="url(#glB2)"/>
-        <circle cx="40" cy="40" r="36" fill="none" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.35"/>
-        <g filter="url(#sg2)">
-          <polygon points="26,16 54,16 46,37 34,37" fill="url(#hG2)" opacity="0.85"/>
-          <polygon points="34,43 46,43 54,64 26,64" fill="url(#hG2)" opacity="0.65"/>
-          <line x1="34" y1="37" x2="46" y2="37" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.6"/>
-          <line x1="34" y1="43" x2="46" y2="43" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.6"/>
-          <rect x="24" y="13" width="32" height="4" rx="1.5" fill="url(#cG2)"/>
-          <rect x="24" y="63" width="32" height="4" rx="1.5" fill="url(#cG2)" opacity="0.7"/>
-          <circle cx="40" cy="47" r="1.8" fill="#e8c84a" opacity="0.9"/>
-        </g>
-        <g filter="url(#sg2)">
-          <rect x="38.2" y="28" width="3.6" height="24" rx="1" fill="url(#cG2)"/>
-          <rect x="30"   y="35" width="20"  height="3.6" rx="1" fill="url(#cG2)"/>
-        </g>
-        <g stroke="#c9a227" stroke-width="0.9" stroke-linecap="round" stroke-opacity="0.55">
-          <line x1="40" y1="4"  x2="40"   y2="9"/>
-          <line x1="52" y1="7"  x2="49.5" y2="11"/>
-          <line x1="28" y1="7"  x2="30.5" y2="11"/>
-          <line x1="60" y1="16" x2="56.5" y2="18.5"/>
-          <line x1="20" y1="16" x2="23.5" y2="18.5"/>
-        </g>
-      </svg>
-    </div>
+    <div class="logo-wrap"><svg class="logo-svg" width="66" height="66" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-label="End Times Faith logo">
+    <defs>
+      <radialGradient id="gl66" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#c9a227" stop-opacity="0.18"/><stop offset="100%" stop-color="#c9a227" stop-opacity="0"/></radialGradient>
+      <linearGradient id="c66" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#e8c84a"/><stop offset="100%" stop-color="#a07010"/></linearGradient>
+      <linearGradient id="h66" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#c9a227" stop-opacity="0.9"/><stop offset="100%" stop-color="#7a5510" stop-opacity="0.7"/></linearGradient>
+    </defs>
+    <circle cx="40" cy="40" r="38" fill="url(#gl66)"/>
+    <circle cx="40" cy="40" r="36" fill="none" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.35"/>
+    <polygon points="26,16 54,16 46,37 34,37" fill="url(#h66)" opacity="0.85"/>
+    <polygon points="34,43 46,43 54,64 26,64" fill="url(#h66)" opacity="0.65"/>
+    <line x1="34" y1="37" x2="46" y2="37" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.6"/>
+    <line x1="34" y1="43" x2="46" y2="43" stroke="#c9a227" stroke-width="0.8" stroke-opacity="0.6"/>
+    <rect x="24" y="13" width="32" height="4" rx="1.5" fill="url(#c66)"/>
+    <rect x="24" y="63" width="32" height="4" rx="1.5" fill="url(#c66)" opacity="0.7"/>
+    <circle cx="40" cy="47" r="1.8" fill="#e8c84a" opacity="0.9"/>
+    <rect x="38.2" y="28" width="3.6" height="24" rx="1" fill="url(#c66)"/>
+    <rect x="30" y="35" width="20" height="3.6" rx="1" fill="url(#c66)"/>
+    <g stroke="#c9a227" stroke-width="0.9" stroke-linecap="round" stroke-opacity="0.55">
+      <line x1="40" y1="4" x2="40" y2="9"/><line x1="52" y1="7" x2="49.5" y2="11"/><line x1="28" y1="7" x2="30.5" y2="11"/>
+      <line x1="60" y1="16" x2="56.5" y2="18.5"/><line x1="20" y1="16" x2="23.5" y2="18.5"/>
+    </g>
+  </svg></div>
     <div class="site-name">End Times <span>Faith</span></div>
     <p class="tagline">Prophetic scripts. Raw. Urgent. Scripture-first.</p>
   </header>
-
-  <!-- Active session indicator -->
   <div class="session-bar">
-    <div class="session-info">
-      <div class="session-dot"></div>
-      <span id="sessionLabel">Connected via Claude</span>
-    </div>
-    <button class="btn-switch" onclick="switchProvider()">⇄ Switch Provider</button>
+    <div class="session-info"><div class="session-dot"></div><span id="sessionLabel">Connected</span></div>
+    <button class="btn-switch" onclick="switchProvider()">Switch provider</button>
   </div>
-
-  <!-- Subject input -->
   <div class="input-section">
-    <span class="mono field-label">Enter a Christian Subject or Theme</span>
+    <span class="mono field-label">Enter a Christian subject or theme</span>
     <div class="input-row">
-      <input type="text" id="subject" placeholder="e.g. the sabbath, tithing, christmas…" autocomplete="off" spellcheck="false" enterkeyhint="go"/>
-      <button class="btn-generate" id="generateBtn" onclick="generate()">⚡ Generate</button>
+      <input type="text" id="subject" placeholder="e.g. the sabbath, tithing, christmas…" autocomplete="off" spellcheck="false"/>
+      <button class="btn-generate" id="generateBtn" onclick="generate()">Generate</button>
     </div>
     <div class="examples">
-      <span class="mono examples-label">Try:</span>
+      <span class="mono" style="color:var(--text-faint)">Try:</span>
       <span class="pill" onclick="fillAndRun('the sabbath')">the sabbath</span>
       <span class="pill" onclick="fillAndRun('tithing')">tithing</span>
       <span class="pill" onclick="fillAndRun('worship music')">worship music</span>
@@ -893,387 +326,396 @@ footer {
       <span class="pill" onclick="fillAndRun('prayer routines')">prayer routines</span>
     </div>
   </div>
-
   <div class="ornament">✦</div>
-
   <div class="loading-bar" id="loadingBar"></div>
   <div class="status-text" id="statusText"></div>
   <div class="gen-error" id="genError"></div>
-
   <div class="output-wrapper" id="outputWrapper">
     <div class="output-header">
-      <span class="mono output-title-label">Generated Script</span>
+      <span class="mono output-title-label">Generated script</span>
       <div class="output-actions">
-        <button class="btn-action" id="copyBtn" onclick="copyOutput()">📋 Copy</button>
-        <button class="btn-action" onclick="downloadOutput()">⬇ Download .txt</button>
+        <button class="btn-action" id="copyBtn" onclick="copyOutput()">Copy</button>
+        <button class="btn-action" onclick="downloadOutput()">Download</button>
       </div>
     </div>
     <div class="output-box" id="outputBox"></div>
   </div>
-
-  <footer>End Times Faith &nbsp;·&nbsp; Script Generator &nbsp;·&nbsp; Internal Use Only</footer>
+  <div class="ornament">✦</div>
+  <section class="lesson-card" id="lessonCard"></section>
+  <div class="output-wrapper" id="studyOutputWrap" style="margin-top:16px">
+    <div class="output-header">
+      <span class="mono output-title-label" id="studyOutTitle">Study result</span>
+      <div class="output-actions">
+        <button class="btn-action" id="studyCopyBtn" onclick="copyStudy()">Copy</button>
+        <button class="btn-action" onclick="downloadStudy()">Download</button>
+      </div>
+    </div>
+    <div class="output-box md-output" id="studyOutBox"></div>
+  </div>
+  <footer>End Times Faith · Script Generator · Internal use</footer>
 </div>
 
-<!-- ══════════════════════════════════
-     SCRIPT
-══════════════════════════════════ -->
 <script>
-/* ── PROVIDER CONFIG ── */
+
 const PROVIDERS = {
-  anthropic: {
-    label: 'Claude (Anthropic)',
-    call: callAnthropic,
-  },
-  openai: {
-    label: 'ChatGPT (OpenAI)',
-    call: callOpenAI,
-  },
-  groq: {
-    label: 'Groq · Llama 3.3',
-    call: callGroq,
-  },
-  openrouter: {
-    label: 'OpenRouter · Llama 3.1',
-    call: callOpenRouter,
-  },
+  gemini: { name: 'Gemini', label: 'Gemini', model: 'gemini-2.5-flash', modelLabel: 'gemini-2.5-flash', tier: 'free', prefix: 'AIza', recommended: true,
+    hint: 'Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — no credit card needed.' },
+  anthropic: { name: 'Claude', label: 'Claude (Anthropic)', model: 'claude-sonnet-4-20250514', modelLabel: 'claude-sonnet-4', tier: 'paid', prefix: 'sk-ant-',
+    hint: 'Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> — requires a small credit deposit.' },
+  openai: { name: 'ChatGPT', label: 'ChatGPT (OpenAI)', model: 'gpt-4o-mini', modelLabel: 'gpt-4o-mini', tier: 'paid', prefix: 'sk-',
+    hint: 'Get a key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a> — pay-as-you-go pricing.' },
+  groq: { name: 'Groq', label: 'Groq · Llama 3.3', model: 'llama-3.3-70b-versatile', modelLabel: 'llama-3.3-70b', tier: 'free', prefix: 'gsk_',
+    hint: 'Get a <strong>free</strong> key at <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a> — no credit card needed.' },
+  openrouter: { name: 'OpenRouter', label: 'OpenRouter · Llama 3.1', model: 'meta-llama/llama-3.1-8b-instruct:free', modelLabel: 'llama-3.1-8b:free', tier: 'free', prefix: 'sk-or-',
+    hint: 'Get a <strong>free</strong> key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — free models available.' }
 };
+const PROVIDER_ORDER = ['gemini','anthropic','openai','groq','openrouter'];
 
-const KEY_HINTS = {
-  anthropic:   'Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> — requires a small credit deposit.',
-  openai:      'Get a key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a> — pay-as-you-go pricing.',
-  groq:        'Get a <strong>free</strong> key at <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a> — no credit card needed.',
-  openrouter:  'Get a <strong>free</strong> key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — free models available.',
-};
+const SYSTEM_PROMPT = "You are the exclusive scriptwriter for the End Times Faith YouTube channel. Your videos are raw, urgent, prophetic exposés that tear down modern \"Christian\" habits, traditions, routines, songs, symbols, activities, and teachings that look holy but actually replace, undermine, hide disobedience, or quietly contradict Scripture. Always call people back to simple New Testament obedience — and always anchor the conclusion in the Sabbath truth as revealed in Scripture and affirmed by Ellen G. White's The Great Controversy.\n\nOutput ONLY a clean .en.txt subtitle file — nothing else. Zero markdown. Zero preamble.\n\nStructure to follow EXACTLY:\n\n1. TITLE (first line): Auto-generate the perfect clickbait title for the subject given. Patterns:\n   - \"Every \"Christian\" [Subject] That [REPLACES Scripture / UNDERMINES Grace / HIDES Disobedience / QUIETLY Changed the Faith]\"\n   - \"Every [Subject] That Looks Holy But Hides…\"\n   - \"Why [Subject] Replaces Real Discipleship\"\n\n2. HOOK (lines 2–8): Short punchy lines, 5–12 words max. Use openers like:\n   \"We call ourselves Bible-believing… but most of us barely open it.\"\n   \"But what if I told you…\"\n   \"Every 'Christian' who still does this…\"\n   End hook with a shocking statement + \"…\"\n\n3. THESIS (4–6 lines): Boldly name the problem using CAPS: REPLACES, UNDERMINES, HIDES DISOBEDIENCE, QUIETLY, TRAINS YOU TO, FOOLS YOU INTO.\n\n4. MAIN BODY (9–15 numbered points). Each point must follow this exact micro-pattern:\n   Line 1: Vivid modern scene\n   Line 2–3: \"This trains you to [negative]. It trains you to [another negative].\"\n   Line 4: \"It quietly [harm]…\" or \"This fools you into thinking [false security]…\"\n   Line 5–6: \"But when you open Scripture…\"\n   Line 7: Direct Bible quote or reference + contrast with Jesus or the early church\n   Line 8: \"This is not obedience — this is [strong accusation].\"\n   Every single line: 5–12 words. One thought per line.\n\n5. CONCLUSION (last 10–13 lines):\n   Summarise the root issue (culture over Christ / performance over obedience / tradition over truth).\n   Then write EXACTLY these lines (do not alter them):\n   \"Drop the tradition.\"\n   \"Return to the Bible alone.\"\n   \"As Ellen G. White wrote in The Great Controversy, p. 605:\"\n   '\"The Sabbath will be the great test of loyalty,'\n   'for it is the point of truth especially controverted.\"'\n   \"Drop the tradition. Return to the Bible alone.\"\n   End with comment bait: \"Which one of these are you still doing?\" or \"What did this video expose in your life? Drop it in the comments.\"\n\nTone (non-negotiable):\n- Urgent, loving, uncompromising. Speak directly to \"you\".\n- Super-short lines for subtitle timing.\n- Lots of … and selective CAPS for punch.\n- \"This trains you to…\" and \"It quietly…\" are your signature phrases.\n- Zero filler. Zero softening. Zero markdown.\n\nNow generate the FULL subtitle script for the subject:";
 
-/* ── STATE ── */
-let activeProvider = 'anthropic';
+const QUARTER = { year: 2026, quarter: 3, title: 'First and Second Corinthians' };
+const LESSONS = [{"number":1,"title":"Paul's Ministry in Corinth","start":"2026-06-27","end":"2026-07-03","memoryText":"One night the Lord said to Paul in a vision, 'Do not be afraid, but speak and do not be silent; for I am with you, and no one will lay a hand on you to harm you, for there are many in this city who are my people'","memoryRef":"Acts 18:9, 10","memoryVersion":"NRSV","readForStudy":"","overview":"Adult Sabbath School Lesson 1, 3rd Quarter 2026 — Paul's Ministry in Corinth.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=1"}]},{"number":2,"title":"The Message of the Cross","start":"2026-07-04","end":"2026-07-10","memoryText":"For the message of the cross is foolishness to those who are perishing, but to us who are being saved it is the power of God.","memoryRef":"1 Corinthians 1:18","memoryVersion":"NKJV","readForStudy":"","overview":"Adult Sabbath School Lesson 2, 3rd Quarter 2026 — The Message of the Cross.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=2"}]},{"number":3,"title":"Unity in Christ","start":"2026-07-11","end":"2026-07-17","memoryText":"Now I plead with you, brethren, by the name of our Lord Jesus Christ, that you all speak the same thing, and that there be no divisions among you.","memoryRef":"1 Corinthians 1:10","memoryVersion":"NKJV","readForStudy":"","overview":"Adult Sabbath School Lesson 3, 3rd Quarter 2026 — Unity in Christ.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=3"}]},{"number":4,"title":"Sin in the Church","start":"2026-07-18","end":"2026-07-24","memoryText":"Your glorying is not good. Do you not know that a little leaven leavens the whole lump?","memoryRef":"1 Corinthians 5:6","memoryVersion":"NKJV","readForStudy":"","overview":"Adult Sabbath School Lesson 4, 3rd Quarter 2026 — Sin in the Church.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=4"}]},{"number":5,"title":"All to the Glory of God","start":"2026-07-25","end":"2026-07-31","memoryText":"Therefore, whether you eat or drink, or whatever you do, do all to the glory of God.","memoryRef":"1 Corinthians 10:31","memoryVersion":"NKJV","readForStudy":"","overview":"Adult Sabbath School Lesson 5, 3rd Quarter 2026 — All to the Glory of God.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=5"}]},{"number":6,"title":"Spiritual Gifts","start":"2026-08-01","end":"2026-08-07","memoryText":"But the manifestation of the Spirit is given to each one for the profit of all.","memoryRef":"1 Corinthians 12:7","memoryVersion":"NKJV","readForStudy":"","overview":"Adult Sabbath School Lesson 6, 3rd Quarter 2026 — Spiritual Gifts.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=6"}]},{"number":7,"title":"A Portrait of Love","start":"2026-08-08","end":"2026-08-14","memoryText":"And now abide faith, hope, love, these three; but the greatest of these is love.","memoryRef":"1 Corinthians 13:13","memoryVersion":"NKJV","readForStudy":"","overview":"Adult Sabbath School Lesson 7, 3rd Quarter 2026 — A Portrait of Love.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=7"}]},{"number":8,"title":"The Power of Christ's Resurrection","start":"2026-08-15","end":"2026-08-21","memoryText":"And if Christ is not risen, then our preaching is empty and your faith is also empty. … And if Christ is not risen, your faith is futile; you are still in your sins!","memoryRef":"1 Corinthians 15:14, 17","memoryVersion":"NKJV","readForStudy":"","overview":"Adult Sabbath School Lesson 8, 3rd Quarter 2026 — The Power of Christ's Resurrection.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=8"}]},{"number":9,"title":"Love-driven Ministry","start":"2026-08-22","end":"2026-08-28","memoryText":"For out of much affliction and anguish of heart I wrote to you, with many tears, not that you should be grieved, but that you might know the love which I have so abundantly for you.","memoryRef":"2 Corinthians 2:4","memoryVersion":"NKJV","readForStudy":"","overview":"Adult Sabbath School Lesson 9, 3rd Quarter 2026 — Love-driven Ministry.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=9"}]},{"number":10,"title":"Authentic Christian Ministry","start":"2026-08-29","end":"2026-09-04","memoryText":"We are afflicted in every way, but not crushed; perplexed, but not driven to despair; persecuted, but not forsaken; struck down, but not destroyed; always carrying in the body the death of Jesus, so that the life of Jesus may also be manifested in our bodies.","memoryRef":"2 Corinthians 4:8–10","memoryVersion":"ESV","readForStudy":"","overview":"Adult Sabbath School Lesson 10, 3rd Quarter 2026 — Authentic Christian Ministry.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=10"}]},{"number":11,"title":"Stewardship and Mission","start":"2026-09-05","end":"2026-09-11","memoryText":"For you know the grace of our Lord Jesus Christ, that though He was rich, yet for your sakes He became poor, that you through His poverty might become rich.","memoryRef":"2 Corinthians 8:9","memoryVersion":"NKJV","readForStudy":"","overview":"Adult Sabbath School Lesson 11, 3rd Quarter 2026 — Stewardship and Mission.","days":[],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=11"}]},{"number":12,"title":"Dealing With False Teachers","start":"2026-09-12","end":"2026-09-18","memoryText":"For the weapons of our warfare are not of the flesh but have divine power to destroy strongholds.","memoryRef":"2 Corinthians 10:4","memoryVersion":"ESV","readForStudy":"2 Cor. 10:1–17; Jer. 9:24; 2 Cor. 11:1–15, 22–28; 2 Cor. 12:20–21; 2 Cor. 13:5","overview":"False teachers in Corinth opposed Paul and seduced members away from a sincere devotion to Christ. Paul calls this a spiritual war — not a personality clash. The weapons are not of the flesh: meekness that looks like weakness, authority that builds rather than tears down, and a boast that is only in the Lord. He unmasks the intruders as deceitful workers, boasts as a fool of sufferings for the gospel, and makes a final parental appeal for repentance before his third visit. The church must conserve the gospel unspoiled, with love and firmness, because lives — and eternity — are at stake.","days":[{"day":"Sabbath","title":"Introduction","scripture":"2 Corinthians 10:4","summary":"False teachers opposed Paul and his ministry and seduced members of Corinth. Paul frames the conflict as spiritual war because they were opposing not him but Christ. The gospel must be conserved, unspoiled and pure."},{"day":"Sunday","title":"Spiritual War","scripture":"2 Corinthians 10:1–11","summary":"Opponents called Paul bold in letters and weak in person. He answers with the meekness and gentleness of Christ — the same Christ who overturned tables. Every lofty opinion must be demolished so every thought is taken captive to obey Christ. Authority is for edification, not destruction."},{"day":"Monday","title":"Boasting in the Lord","scripture":"2 Corinthians 10:12–18; Jeremiah 9:24","summary":"False teachers compared themselves with themselves. Paul refuses the measuring stick. 'Let the one who boasts, boast in the Lord.' The only commendation that counts is the Lord's."},{"day":"Tuesday","title":"False Teachers Identified","scripture":"2 Corinthians 11:1–15","summary":"Paul is jealous for the church as a father presenting a pure bride to Christ. The intruders preach another Jesus, another spirit, another gospel — like the serpent who deceived Eve. They are deceitful workers, disguising themselves as apostles of Christ, as Satan disguises himself as an angel of light."},{"day":"Wednesday","title":"Suffering for the Sake of the Gospel","scripture":"2 Corinthians 11:16–31","summary":"Paul 'plays the fool' and boasts of labors, imprisonments, beatings, shipwrecks, danger, hunger, and the daily pressure of anxiety for all the churches. His résumé of weakness is the true mark of an apostle."},{"day":"Thursday","title":"Appeal to the Unrepentant","scripture":"2 Corinthians 12:14–21; 13:1–10","summary":"Paul plans a third visit and would rather be stern in a letter than contentious in person. 'Examine yourselves, to see whether you are in the faith.' He prefers gentleness to using authority."},{"day":"Friday","title":"Further Thought","scripture":"2 Timothy 2:15","summary":"Do not judge leaders by charm, oratory, or appearance. Study to show yourself approved, rightly dividing the word of truth."}],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=12"},{"name":"Sabbath School Net","url":"https://ssnet.org/lessons/26c/less12.html"},{"name":"Mark Finley — Lesson 12","url":"https://www.youtube.com/watch?v=k73lmxjre2A"},{"name":"3ABN Sabbath School Panel","url":"https://www.youtube.com/watch?v=VzuQ-9FbAuE"}]},{"number":13,"title":"Grace, Love, and Fellowship","start":"2026-09-19","end":"2026-09-25","memoryText":"The grace of the Lord Jesus Christ and the love of God and the fellowship of the Holy Spirit be with you all.","memoryRef":"2 Corinthians 13:14","memoryVersion":"ESV","readForStudy":"2 Corinthians 13; the closing of the Corinthian correspondence","overview":"Paul closes 2 Corinthians with the triune blessing that has become the church's benediction: the grace of the Lord Jesus Christ, the love of God, and the fellowship of the Holy Spirit. After chapters of tears, defense, and appeal, the last word is not a threat but communion.","days":[{"day":"Sabbath","title":"Introduction","scripture":"2 Corinthians 13:14","summary":"The quarter closes on grace, love, and fellowship — the life of the Trinity given to a messy church."}],"sources":[{"name":"Adult Bible Study Guide","url":"https://www.sabbath.school/Lesson?year=2026&quarter=3&lesson=13"}]}];
+
+let activeProvider = 'gemini';
 let apiKey = '';
 let lastOutput = '';
+let lastStudy = '';
+let daysOpen = true;
+let showPrompt = false;
+let activeStudy = null;
+let currentLesson = null;
 
-/* ── PROMPT ── */
-const SYSTEM_PROMPT = `You are the exclusive scriptwriter for the End Times Faith YouTube channel. Your videos are raw, urgent, prophetic exposés that tear down modern "Christian" habits, traditions, routines, songs, symbols, activities, and teachings that look holy but actually replace, undermine, hide disobedience, or quietly contradict Scripture. Always call people back to simple New Testament obedience — and always anchor the conclusion in the Sabbath truth as revealed in Scripture and affirmed by Ellen G. White's The Great Controversy.
+function parseISO(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); }
+function getLesson(){
+  const now=new Date(); const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const match=LESSONS.find(l=> today>=parseISO(l.start) && today<=parseISO(l.end));
+  if(match) return match;
+  if(today<parseISO(LESSONS[0].start)) return LESSONS[0];
+  return LESSONS[LESSONS.length-1];
+}
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function formatRange(l){
+  const s=parseISO(l.start), e=parseISO(l.end);
+  const a=MONTHS[s.getMonth()]+' '+s.getDate();
+  const b=(s.getMonth()===e.getMonth()? e.getDate()+', '+e.getFullYear() : MONTHS[e.getMonth()]+' '+e.getDate()+', '+e.getFullYear());
+  return a+'–'+b;
+}
+function lessonContext(l){
+  const days=(l.days||[]).map(d=>'- '+d.day+': '+d.title+' ('+d.scripture+')\n  '+d.summary).join('\n');
+  return 'THIS WEEK\'S SDA ADULT SABBATH SCHOOL LESSON\nQuarter: '+QUARTER.year+' Q'+QUARTER.quarter+' — '+QUARTER.title+'\nLesson '+l.number+': '+l.title+'\nDates: '+formatRange(l)+'\nMemory Text: “'+l.memoryText+'” ('+l.memoryRef+', '+l.memoryVersion+')\nRead for this week\'s study: '+(l.readForStudy||'See the Adult Bible Study Guide')+'\n\nOverview:\n'+l.overview+'\n\nDaily studies:\n'+(days||'(See the quarterly.)')+'\n\nOfficial and popular study sources this week:\n'+(l.sources||[]).map(s=>'- '+s.name+': '+s.url).join('\n')+'\nAlso commonly covering this lesson: Hope Sabbath School (Derek Morris), Sabbath School with Mark Finley (HopeLives365), 3ABN Sabbath School Panel, Sabbath School Net (ssnet.org), Adult Bible Study Guide, It Is Written Sabbath School.';
+}
+function buildQuestionsPrompt(l){
+  return 'You are an expert in SDA weekly lesson study. Your assignment is to understand the lesson study deeply and then look online on the different forums, YouTube channels and lesson study websites and channels covering the lesson studies and find and rank the best questions surrounding the lesson study, and then the best alternative thought-provoking inputs that people have given surrounding the lesson study for the past week. Provide the input and question in its raw form and what people replied to it and why it is so deep. Present it in table form.\n\n'+lessonContext(l)+'\n\nInstructions:\n- Search current coverage of THIS exact lesson (Lesson '+l.number+', Q3 2026, "'+l.title+'") on Sabbath School Net, Hope Sabbath School, Mark Finley / HopeLives365, 3ABN Sabbath School Panel, It Is Written, Adult Bible Study Guide comment threads, Reddit, Facebook Sabbath School groups, and YouTube comments.\n- Rank the best discussion questions (from official quarterlies AND from teachers/viewers). Then rank the best alternative thought-provoking inputs.\n- Present TWO markdown tables:\n\nTable 1 — Best questions\nColumns: Rank | Raw question (verbatim if possible) | Source (channel / site / teacher) | What people replied | Why it is so deep\n\nTable 2 — Best alternative thought-provoking inputs\nColumns: Rank | Raw input (verbatim) | Source | What people replied | Why it is so deep\n\n- Prefer actual found questions over invented ones. If a source cannot be verified, say so in the Source cell rather than fabricating a URL.\n- After the tables, add a short "How to use these in class" paragraph.\n- Do not moralize. Let the questions do the work.';
+}
+function buildScriptPrompt(l){
+  return 'System Role: Act as an expert biblical scholar, ancient historian, and master storyteller. Your task is to write a YouTube video script that explains difficult, overlooked, or seemingly contradictory biblical passages.\n\nTone & Voice: The tone must be calm, profoundly intellectual yet highly accessible, empathetic, and pastoral. Avoid all common Christian clichés, religious jargon, or overly emotional preaching. Speak with the quiet authority of a historian who has discovered a life-changing secret in the text. Ground all theology in physical, tactile realities (bread, ashes, wood, dirt, water).\n\nScript Structure:\n\nThe Cinematic Hook: Start in media res with a highly sensory, cinematic description of the geographical or historical setting (e.g., the smell of woodsmoke in ancient Jerusalem). Introduce the specific tension, difficult verse, or "impossible command" without immediately giving away the answer. Never use generic YouTube intros like "Welcome back to the channel."\n\nThe Linguistic & Cultural Deep Dive: Identify 1 to 3 specific Hebrew or Greek words at the core of the passage. Explain their historical usage and cultural context to the original ancient Near Eastern or first-century Jewish audience. Crucial rule: Favour actual textual usage over speculative etymology (dead roots). Reframe the tension using this new understanding.\n\nThe Mid-Roll Integration: Insert a very brief, natural transition around the halfway mark. Use this exact phrasing style: "Quick word before we continue. If this kind of study is useful to you, subscribing genuinely helps... becoming a channel member directly supports the research."\n\nThe Old/New Testament Bridge: Connect the concept to the broader biblical narrative. If the text is Old Testament, show how the New Testament resolves it. If it\'s New Testament, root it deeply in Old Testament history and geography.\n\nThe Pastoral Application: Pivot directly to the modern viewer\'s life. Address an unspoken burden, exhaustion, or pain (e.g., feeling like a failure in prayer, sitting by a sick child\'s bed). Use the theological insight to offer genuine relief and grace, not a new set of rules.\n\nThe Cinematic Conclusion: Circle back to the opening imagery. Deliver a final, profound, paradigm-shifting thought that leaves the listener in awe of the text. End with a brief, gentle sign-off.\n\nTask: Write a script using this framework for the following biblical topic:\n\n'+l.title+' — SDA Adult Sabbath School Lesson '+l.number+', Q3 2026 ('+l.start+' to '+l.end+').\nMemory text: “'+l.memoryText+'” ('+l.memoryRef+').\nPrimary scriptures: '+(l.readForStudy||l.memoryRef)+'.\n\n'+lessonContext(l)+'\n\nChoose the single most charged tension in this week\'s study as the spine of the script. Write a complete spoken script, 1,600–2,200 words, with scene headings matching the structure above.';
+}
+function buildFollowupPrompt(l){
+  return 'You are a veteran SDA Sabbath School teacher, biblical scholar, and small-group facilitator. Generate follow-up questions for this week\'s Adult Sabbath School lesson.\n\n'+lessonContext(l)+'\n\nProduce three sections. Do not answer the questions. For each question, add one italic line: what a rich conversation might open — not the answer.\n\n1. CLASS DISCUSSION (8–10 questions)\nRanked from most essential to most stretching. These should work out loud in a mixed-age Sabbath School class without shaming anyone. Include at least two that force people to handle a real verse, not a slogan.\n\n2. PERSONAL APPLICATION (6 questions)\nPress the lesson into Monday morning. Address unspoken burdens that fit THIS text: spiritual-warfare fatigue, fear of being deceived, church conflict, mistaking gentleness for cowardice, mistaking boldness for flesh, the exhaustion of defending yourself, sitting with an unrepentant family member.\n\n3. GOING DEEPER (5 questions)\nThe questions the quarterly almost asks. Linguistic, historical, or pastoral tensions. One of them should be slightly dangerous — a question that could split the class in a fruitful way.\n\nClose with 3 "leave-the-room" questions a teacher can read while people pack hymnals.\n\nPresent in clean markdown. No preamble, no sign-off.';
+}
+const STUDY = {
+  questions: { label: 'Best questions', blurb: 'Ranked forum, YouTube, and class questions from this week\'s study — plus the replies that cut deepest.', useSearch: true, maxTokens: 8192, build: buildQuestionsPrompt, title: 'Best questions' },
+  script: { label: 'Video script', blurb: 'A cinematic, scholarly YouTube script on the heart of this week\'s passage.', useSearch: false, maxTokens: 8192, build: buildScriptPrompt, title: 'Video script' },
+  followup: { label: 'Follow-up questions', blurb: 'Class, personal, and going-deeper questions the quarterly almost asks — but doesn\'t.', useSearch: false, maxTokens: 6144, build: buildFollowupPrompt, title: 'Follow-up questions' }
+};
 
-Output ONLY a clean .en.txt subtitle file — nothing else. Zero markdown. Zero preamble.
-
-Structure to follow EXACTLY:
-
-1. TITLE (first line): Auto-generate the perfect clickbait title for the subject given. Patterns:
-   - "Every "Christian" [Subject] That [REPLACES Scripture / UNDERMINES Grace / HIDES Disobedience / QUIETLY Changed the Faith]"
-   - "Every [Subject] That Looks Holy But Hides…"
-   - "Why [Subject] Replaces Real Discipleship"
-
-2. HOOK (lines 2–8): Short punchy lines, 5–12 words max. Use openers like:
-   "We call ourselves Bible-believing… but most of us barely open it."
-   "But what if I told you…"
-   "Every 'Christian' who still does this…"
-   End hook with a shocking statement + "…"
-
-3. THESIS (4–6 lines): Boldly name the problem using CAPS: REPLACES, UNDERMINES, HIDES DISOBEDIENCE, QUIETLY, TRAINS YOU TO, FOOLS YOU INTO.
-
-4. MAIN BODY (9–15 numbered points). Each point must follow this exact micro-pattern:
-   Line 1: Vivid modern scene
-   Line 2–3: "This trains you to [negative]. It trains you to [another negative]."
-   Line 4: "It quietly [harm]…" or "This fools you into thinking [false security]…"
-   Line 5–6: "But when you open Scripture…"
-   Line 7: Direct Bible quote or reference + contrast with Jesus or the early church
-   Line 8: "This is not obedience — this is [strong accusation]."
-   Every single line: 5–12 words. One thought per line.
-
-5. CONCLUSION (last 10–13 lines):
-   Summarise the root issue (culture over Christ / performance over obedience / tradition over truth).
-   Then write EXACTLY these lines (do not alter them):
-   "Drop the tradition."
-   "Return to the Bible alone."
-   "As Ellen G. White wrote in The Great Controversy, p. 605:"
-   '"The Sabbath will be the great test of loyalty,'
-   'for it is the point of truth especially controverted."'
-   "Drop the tradition. Return to the Bible alone."
-   End with comment bait: "Which one of these are you still doing?" or "What did this video expose in your life? Drop it in the comments."
-
-Tone (non-negotiable):
-- Urgent, loving, uncompromising. Speak directly to "you".
-- Super-short lines for subtitle timing.
-- Lots of … and selective CAPS for punch.
-- "This trains you to…" and "It quietly…" are your signature phrases.
-- Zero filler. Zero softening. Zero markdown.
-
-Now generate the FULL subtitle script for the subject:`;
-
-/* ── API CALLS ── */
-
-async function callAnthropic(key, subject) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: subject }],
-    }),
-  });
-  if (!res.ok) {
-    const e = await res.json().catch(() => ({}));
-    throw new Error(e?.error?.message || `Anthropic error ${res.status}`);
-  }
-  const data = await res.json();
-  return (data.content || []).map(b => b.text || '').join('');
+function looksLikeKey(id, key){
+  const p = PROVIDERS[id].prefix;
+  if(id==='openai') return key.startsWith('sk-') && !key.startsWith('sk-ant-') && !key.startsWith('sk-or-');
+  return key.startsWith(p);
 }
 
-async function callOpenAI(key, subject) {
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      max_tokens: 1500,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: subject },
-      ],
-    }),
-  });
-  if (!res.ok) {
-    const e = await res.json().catch(() => ({}));
-    throw new Error(e?.error?.message || `OpenAI error ${res.status}`);
-  }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
+function renderProviders(){
+  const grid=document.getElementById('providerGrid');
+  grid.innerHTML = PROVIDER_ORDER.map(id=>{
+    const p=PROVIDERS[id];
+    return '<div class="provider-card'+(id===activeProvider?' selected':'')+'" data-provider="'+id+'" onclick="selectProvider(this)">'+
+      '<div class="provider-info"><div class="provider-name">'+p.name+(p.recommended?' <span class="provider-badge badge-rec">For lesson study</span>':'')+'</div>'+
+      '<div class="provider-model">'+p.modelLabel+'</div>'+
+      '<span class="provider-badge '+(p.tier==='free'?'badge-free':'badge-paid')+'">'+(p.tier==='free'?'Free tier':'Paid key')+'</span></div><div class="check"></div></div>';
+  }).join('');
+  document.getElementById('keyHint').innerHTML = PROVIDERS[activeProvider].hint;
+  document.getElementById('apiKeyInput').placeholder = PROVIDERS[activeProvider].prefix+'…';
 }
 
-async function callGroq(key, subject) {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      max_tokens: 1500,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: subject },
-      ],
-    }),
-  });
-  if (!res.ok) {
-    const e = await res.json().catch(() => ({}));
-    throw new Error(e?.error?.message || `Groq error ${res.status}`);
-  }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
-}
-
-async function callOpenRouter(key, subject) {
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${key}`,
-      'HTTP-Referer': 'https://endtimesfaith.local',
-      'X-Title': 'End Times Faith Script Generator',
-    },
-    body: JSON.stringify({
-      model: 'meta-llama/llama-3.1-8b-instruct:free',
-      max_tokens: 1500,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: subject },
-      ],
-    }),
-  });
-  if (!res.ok) {
-    const e = await res.json().catch(() => ({}));
-    throw new Error(e?.error?.message || `OpenRouter error ${res.status}`);
-  }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
-}
-
-/* ── LOGIN LOGIC ── */
-
-function selectProvider(card) {
-  document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('selected'));
+function selectProvider(card){
+  document.querySelectorAll('.provider-card').forEach(c=>c.classList.remove('selected'));
   card.classList.add('selected');
   activeProvider = card.dataset.provider;
-  document.getElementById('keyHint').innerHTML = KEY_HINTS[activeProvider];
-  // Clear key field when switching
-  document.getElementById('apiKeyInput').value =
-    localStorage.getItem(`etf_key_${activeProvider}`) || '';
+  document.getElementById('keyHint').innerHTML = PROVIDERS[activeProvider].hint;
+  document.getElementById('apiKeyInput').placeholder = PROVIDERS[activeProvider].prefix+'…';
+  document.getElementById('apiKeyInput').value = localStorage.getItem('etf_key_'+activeProvider) || '';
 }
 
-function toggleKeyVis() {
-  const inp = document.getElementById('apiKeyInput');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
+function toggleKeyVis(){
+  const inp=document.getElementById('apiKeyInput');
+  inp.type = inp.type==='password' ? 'text' : 'password';
 }
 
-function doLogin() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  const errEl = document.getElementById('loginError');
-  errEl.classList.remove('show');
-
-  if (!key) {
-    errEl.textContent = '⚠ Please paste your API key before connecting.';
-    errEl.classList.add('show');
-    return;
+function doLogin(){
+  const key=document.getElementById('apiKeyInput').value.trim();
+  const err=document.getElementById('loginError');
+  err.classList.remove('show');
+  if(!key){ err.textContent='Please paste your API key before connecting.'; err.classList.add('show'); return; }
+  if(!looksLikeKey(activeProvider,key)){
+    err.textContent="That doesn't look like a "+PROVIDERS[activeProvider].name+" key. Expected format: "+PROVIDERS[activeProvider].prefix+"…";
+    err.classList.add('show'); return;
   }
-
-  // Basic format checks
-  const checks = {
-    anthropic:  k => k.startsWith('sk-ant-'),
-    openai:     k => k.startsWith('sk-'),
-    groq:       k => k.startsWith('gsk_'),
-    openrouter: k => k.startsWith('sk-or-'),
-  };
-  const check = checks[activeProvider];
-  if (check && !check(key)) {
-    const prefixes = { anthropic:'sk-ant-…', openai:'sk-…', groq:'gsk_…', openrouter:'sk-or-…' };
-    errEl.textContent = `⚠ That doesn't look like a ${PROVIDERS[activeProvider].label} key. Expected format: ${prefixes[activeProvider]}`;
-    errEl.classList.add('show');
-    return;
+  apiKey=key;
+  if(document.getElementById('rememberMe').checked){
+    try{ localStorage.setItem('etf_key_'+activeProvider,key); localStorage.setItem('etf_provider',activeProvider);}catch(e){}
   }
+  showGen();
+}
 
-  apiKey = key;
-
-  if (document.getElementById('rememberMe').checked) {
-    try { localStorage.setItem(`etf_key_${activeProvider}`, key); } catch {}
-    try { localStorage.setItem('etf_provider', activeProvider); } catch {}
-  }
-
-  // Update session label
-  document.getElementById('sessionLabel').textContent =
-    `Connected via ${PROVIDERS[activeProvider].label}`;
-
-  // Show generator
+function showGen(){
+  document.getElementById('sessionLabel').textContent='Connected via '+PROVIDERS[activeProvider].name;
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('genPage').classList.remove('hidden');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderLesson();
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function switchProvider() {
-  // Clear output
+function switchProvider(){
   document.getElementById('outputWrapper').classList.remove('visible');
   document.getElementById('genError').classList.remove('show');
-  document.getElementById('statusText').textContent = '';
-  // Go back to login
+  document.getElementById('statusText').textContent='';
   document.getElementById('genPage').classList.add('hidden');
   document.getElementById('loginPage').classList.remove('hidden');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-/* ── GENERATOR LOGIC ── */
+async function callGemini(key, prompt, opts){
+  opts = opts || {};
+  const body = {
+    contents: [{ role:'user', parts:[{ text: prompt }] }],
+    generationConfig: { maxOutputTokens: opts.maxTokens || 8192, temperature: 0.7 }
+  };
+  if(opts.system) body.systemInstruction = { parts:[{ text: opts.system }] };
+  if(opts.useSearch) body.tools = [{ googleSearch: {} }];
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+PROVIDERS.gemini.model+':generateContent', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-goog-api-key': key },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error((data.error&&data.error.message) || 'Gemini error '+res.status);
+  const text = ((data.candidates||[]).flatMap(c=>(c.content&&c.content.parts)||[]).map(p=>p.text||'').join(''));
+  if(!text) throw new Error('Empty response from Gemini. Try again.');
+  return text;
+}
+async function callAnthropic(key, subject){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{ 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+    body: JSON.stringify({ model: PROVIDERS.anthropic.model, max_tokens:1500, system: SYSTEM_PROMPT, messages:[{role:'user',content:subject}] })
+  });
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error((data.error&&data.error.message)||'Anthropic error '+res.status);
+  return (data.content||[]).map(b=>b.text||'').join('');
+}
+async function callOpenAICompat(url, key, model, subject, extra){
+  const res=await fetch(url,{
+    method:'POST',
+    headers: Object.assign({ 'Content-Type':'application/json', Authorization:'Bearer '+key }, extra||{}),
+    body: JSON.stringify({ model, max_tokens:1500, messages:[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:subject}] })
+  });
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error((data.error&&data.error.message)||'Provider error '+res.status);
+  return (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+}
+async function callProvider(subject){
+  if(activeProvider==='gemini') return callGemini(apiKey, subject, { system: SYSTEM_PROMPT, maxTokens: 1500 });
+  if(activeProvider==='anthropic') return callAnthropic(apiKey, subject);
+  if(activeProvider==='openai') return callOpenAICompat('https://api.openai.com/v1/chat/completions', apiKey, PROVIDERS.openai.model, subject);
+  if(activeProvider==='groq') return callOpenAICompat('https://api.groq.com/openai/v1/chat/completions', apiKey, PROVIDERS.groq.model, subject);
+  return callOpenAICompat('https://openrouter.ai/api/v1/chat/completions', apiKey, PROVIDERS.openrouter.model, subject, { 'HTTP-Referer':'https://leemcq.github.io/endtimesfaith/','X-Title':'End Times Faith' });
+}
 
-async function generate() {
-  const subject = document.getElementById('subject').value.trim();
-  if (!subject) { shake(document.getElementById('subject')); return; }
+async function generate(){
+  const subject=document.getElementById('subject').value.trim();
+  if(!subject){ const el=document.getElementById('subject'); el.style.animation='none'; void el.offsetHeight; el.style.animation='shakeInput 0.35s ease'; return; }
+  const btn=document.getElementById('generateBtn');
+  const loading=document.getElementById('loadingBar');
+  const status=document.getElementById('statusText');
+  const err=document.getElementById('genError');
+  const wrap=document.getElementById('outputWrapper');
+  btn.disabled=true; loading.classList.add('active'); err.classList.remove('show'); wrap.classList.remove('visible'); status.textContent='Writing your script…';
+  try{
+    const text=await callProvider(subject);
+    if(!text) throw new Error('Empty response. Please try again.');
+    lastOutput=text; document.getElementById('outputBox').textContent=text; wrap.classList.add('visible'); status.textContent='';
+    setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'start'}),80);
+  }catch(e){
+    err.textContent=e.message||'Something went wrong. Check your API key.'; err.classList.add('show'); status.textContent='';
+  }finally{ btn.disabled=false; loading.classList.remove('active'); }
+}
+function fillAndRun(v){ document.getElementById('subject').value=v; generate(); }
+async function copyOutput(){
+  if(!lastOutput) return;
+  try{ await navigator.clipboard.writeText(lastOutput); const btn=document.getElementById('copyBtn'); btn.textContent='Copied'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent='Copy'; btn.classList.remove('copied');},2000);}catch(e){}
+}
+function downloadOutput(){
+  if(!lastOutput) return;
+  const slug=document.getElementById('subject').value.trim().replace(/\s+/g,'-').toLowerCase();
+  const a=Object.assign(document.createElement('a'),{ href:URL.createObjectURL(new Blob([lastOutput],{type:'text/plain'})), download:'endtimesfaith-'+(slug||'script')+'.en.txt' });
+  a.click(); URL.revokeObjectURL(a.href);
+}
 
-  const btn        = document.getElementById('generateBtn');
-  const loadingBar = document.getElementById('loadingBar');
-  const statusText = document.getElementById('statusText');
-  const errEl      = document.getElementById('genError');
-  const outWrap    = document.getElementById('outputWrapper');
-  const outBox     = document.getElementById('outputBox');
+function geminiKey(){
+  if(activeProvider==='gemini') return apiKey;
+  return localStorage.getItem('etf_key_gemini') || '';
+}
 
-  btn.disabled = true;
-  loadingBar.classList.add('active');
-  errEl.classList.remove('show');
-  outWrap.classList.remove('visible');
-  statusText.textContent = 'Writing your script…';
-
-  try {
-    const text = await PROVIDERS[activeProvider].call(apiKey, subject);
-    if (!text) throw new Error('Empty response. Please try again.');
-    lastOutput = text;
-    outBox.textContent = text;
-    outWrap.classList.add('visible');
-    statusText.textContent = '';
-    setTimeout(() => outWrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-  } catch (e) {
-    errEl.textContent = '⚠ ' + (e.message || 'Something went wrong. Check your API key.');
-    errEl.classList.add('show');
-    statusText.textContent = '';
-  } finally {
-    btn.disabled = false;
-    loadingBar.classList.remove('active');
+function renderLesson(){
+  currentLesson = getLesson();
+  const l=currentLesson;
+  const teaser=document.getElementById('weekTeaser');
+  teaser.innerHTML='<p class="mono" style="color:var(--gold)">This week · Q'+QUARTER.quarter+' Lesson '+l.number+' · '+formatRange(l)+'</p><h2>'+esc(l.title)+'</h2><p>After you connect, run Best questions, Video script, and Follow-up on this week\'s study with your Gemini key.</p>';
+  const days=(l.days||[]).map(d=>'<div class="day-item"><span class="mono d">'+esc(d.day)+'</span><span class="t">'+esc(d.title)+'</span> <span class="mono" style="color:var(--text-muted);font-size:10px">'+esc(d.scripture)+'</span><div class="s">'+esc(d.summary)+'</div></div>').join('');
+  const sources=(l.sources||[]).map(s=>'<a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.name)+'</a>').join('');
+  const gKey=geminiKey();
+  const geminiField = gKey ? '<p class="mono" style="color:var(--text-muted);margin-top:14px">Running on your Gemini API · gemini-2.5-flash</p>' :
+    '<div class="gemini-box"><span class="mono field-label">Gemini API key — required for the three study buttons</span>'+
+    '<input type="password" id="geminiKeyInput" placeholder="AIza…" autocomplete="off" spellcheck="false" style="margin-top:8px">'+
+    '<div class="key-hint">Free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Stored only on this device.</div></div>';
+  document.getElementById('lessonCard').innerHTML =
+    '<div class="lesson-head"><span class="mono" style="color:var(--gold)">This week\'s lesson study</span><span class="provider-badge badge-paid">Q'+QUARTER.quarter+' '+QUARTER.year+' · Lesson '+l.number+'</span></div>'+
+    '<p class="mono" style="color:var(--text-muted)">'+esc(QUARTER.title)+' · '+formatRange(l)+'</p>'+
+    '<h2 class="lesson-title">'+esc(l.title)+'</h2>'+
+    '<blockquote class="memory"><p>“'+esc(l.memoryText)+'”</p><cite class="mono">'+esc(l.memoryRef)+' · '+esc(l.memoryVersion)+'</cite></blockquote>'+
+    '<p class="lesson-overview">'+esc(l.overview)+'</p>'+
+    (l.readForStudy?'<p style="font-size:13px;color:var(--text-muted);margin-bottom:12px"><span class="mono" style="color:var(--gold-dim)">Read · </span>'+esc(l.readForStudy)+'</p>':'')+
+    (days?'<button class="toggle-days mono" type="button" onclick="toggleDays()">Daily outline</button><div class="day-list" id="dayList">'+days+'</div>':'')+
+    (sources?'<div class="source-row">'+sources+'</div>':'')+
+    geminiField+
+    '<div class="study-grid">'+
+      studyButton('questions')+studyButton('script')+studyButton('followup')+
+    '</div>'+
+    '<div class="prompt-links" id="promptLinks" style="display:none">'+
+      '<button type="button" onclick="togglePrompt()">View the Gemini prompt</button>'+
+      '<button type="button" onclick="copyPrompt()">Copy prompt</button>'+
+    '</div>'+
+    '<pre class="prompt-pre" id="promptPre" style="display:none"></pre>'+
+    '<div class="loading-bar" id="studyLoading"></div>'+
+    '<div class="status-text" id="studyStatus"></div>'+
+    '<div class="gen-error" id="studyError"></div>';
+}
+function studyButton(id){
+  const s=STUDY[id];
+  return '<button class="study-btn'+(activeStudy===id?' active':'')+'" id="btn-'+id+'" onclick="runStudy(\''+id+'\')"><span class="lbl">'+s.label+'</span><span class="blurb">'+s.blurb+'</span></button>';
+}
+function toggleDays(){ const el=document.getElementById('dayList'); if(el) el.style.display = el.style.display==='none'?'block':'none'; }
+function togglePrompt(){
+  showPrompt=!showPrompt;
+  const pre=document.getElementById('promptPre');
+  if(!pre||!activeStudy) return;
+  pre.style.display=showPrompt?'block':'none';
+  if(showPrompt) pre.textContent=STUDY[activeStudy].build(currentLesson);
+}
+async function copyPrompt(){
+  if(!activeStudy) return;
+  try{ await navigator.clipboard.writeText(STUDY[activeStudy].build(currentLesson)); }catch(e){}
+}
+function getStudyKey(){
+  const extra=document.getElementById('geminiKeyInput');
+  if(extra && extra.value.trim()){
+    const k=extra.value.trim();
+    if(looksLikeKey('gemini',k)){ try{ localStorage.setItem('etf_key_gemini',k);}catch(e){} return k; }
+  }
+  return geminiKey();
+}
+async function runStudy(id){
+  const err=document.getElementById('studyError');
+  err.classList.remove('show');
+  const key=getStudyKey();
+  if(!key){ err.textContent='Paste your Gemini API key to run this week\'s study.'; err.classList.add('show'); return; }
+  if(!looksLikeKey('gemini',key)){ err.textContent='That doesn\'t look like a Gemini key. It should start with AIza…'; err.classList.add('show'); return; }
+  activeStudy=id; showPrompt=false;
+  document.querySelectorAll('.study-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('btn-'+id); if(btn) btn.classList.add('active');
+  document.querySelectorAll('.study-btn').forEach(b=>b.disabled=true);
+  document.getElementById('promptLinks').style.display='flex';
+  document.getElementById('promptPre').style.display='none';
+  document.getElementById('studyOutputWrap').classList.remove('visible');
+  const loading=document.getElementById('studyLoading'); const status=document.getElementById('studyStatus');
+  loading.classList.add('active');
+  status.textContent = id==='questions' ? 'Searching lesson studies and ranking the best questions…' : id==='script' ? 'Writing the cinematic study script…' : 'Drafting follow-up questions…';
+  try{
+    const action=STUDY[id];
+    const text=await callGemini(key, action.build(currentLesson), { useSearch: action.useSearch, maxTokens: action.maxTokens });
+    lastStudy=text;
+    document.getElementById('studyOutTitle').textContent=action.title+' · Lesson '+currentLesson.number;
+    document.getElementById('studyOutBox').innerHTML=renderMarkdown(text);
+    document.getElementById('studyOutputWrap').classList.add('visible');
+    setTimeout(()=>document.getElementById('studyOutputWrap').scrollIntoView({behavior:'smooth',block:'start'}),80);
+  }catch(e){
+    err.textContent=e.message||'Something went wrong. Check your Gemini API key.'; err.classList.add('show');
+  }finally{
+    loading.classList.remove('active'); status.textContent='';
+    document.querySelectorAll('.study-btn').forEach(b=>b.disabled=false);
   }
 }
-
-function fillAndRun(v) {
-  document.getElementById('subject').value = v;
-  generate();
+async function copyStudy(){ if(!lastStudy) return; try{ await navigator.clipboard.writeText(lastStudy); const b=document.getElementById('studyCopyBtn'); b.textContent='Copied'; b.classList.add('copied'); setTimeout(()=>{b.textContent='Copy'; b.classList.remove('copied');},2000);}catch(e){} }
+function downloadStudy(){
+  if(!lastStudy) return;
+  const slug=(currentLesson.title||'lesson').toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  const a=Object.assign(document.createElement('a'),{ href:URL.createObjectURL(new Blob([lastStudy],{type:'text/plain'})), download:'lesson-'+currentLesson.number+'-'+slug+'-'+(activeStudy||'study')+'.md' });
+  a.click(); URL.revokeObjectURL(a.href);
 }
-
-async function copyOutput() {
-  if (!lastOutput) return;
-  try {
-    await navigator.clipboard.writeText(lastOutput);
-    const btn = document.getElementById('copyBtn');
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copied';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
-  } catch {}
-}
-
-function downloadOutput() {
-  if (!lastOutput) return;
-  const slug = document.getElementById('subject').value.trim().replace(/\s+/g, '-').toLowerCase();
-  const a = Object.assign(document.createElement('a'), {
-    href: URL.createObjectURL(new Blob([lastOutput], { type: 'text/plain' })),
-    download: `endtimesfaith-${slug || 'script'}.en.txt`,
-  });
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function shake(el) {
-  el.style.animation = 'none';
-  void el.offsetHeight;
-  el.style.animation = 'shakeInput 0.35s ease';
-  setTimeout(() => el.style.animation = '', 400);
-}
-
-document.getElementById('subject').addEventListener('keydown', e => {
-  if (e.key === 'Enter') generate();
-});
-
-document.getElementById('apiKeyInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
-});
-
-/* ── RESTORE SAVED SESSION ── */
-(function restore() {
-  try {
-    const savedProvider = localStorage.getItem('etf_provider') || 'anthropic';
-    const savedKey      = localStorage.getItem(`etf_key_${savedProvider}`);
-    if (savedKey) {
-      // Pre-select saved provider card
-      const card = document.querySelector(`[data-provider="${savedProvider}"]`);
-      if (card) {
-        document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-      }
-      activeProvider = savedProvider;
-      apiKey = savedKey;
-      document.getElementById('apiKeyInput').value = savedKey;
-      document.getElementById('keyHint').innerHTML = KEY_HINTS[savedProvider];
-      // Auto-login
-      document.getElementById('sessionLabel').textContent =
-        `Connected via ${PROVIDERS[savedProvider].label}`;
-      document.getElementById('loginPage').classList.add('hidden');
-      document.getElementById('genPage').classList.remove('hidden');
+function esc(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
+function renderMarkdown(src){
+  let text=src.replace(/\r\n/g,'\n');
+  text=text.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+  const blocks=text.split(/\n\n+/);
+  return blocks.map(block=>{
+    const lines=block.split('\n');
+    if(lines.some(l=>/^\|/.test(l) && /\|$/.test(l.trim()))){
+      const rows=lines.filter(l=>l.trim());
+      const htmlRows=rows.filter(r=>!/^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?$/.test(r.trim())).map((r,i)=>{
+        const cells=r.replace(/^\|/,'').replace(/\|$/,'').split('|').map(c=>inline(c.trim()));
+        const tag=i===0?'th':'td';
+        return '<tr>'+cells.map(c=>'<'+tag+'>'+c+'</'+tag+'>').join('')+'</tr>';
+      }).join('');
+      return '<div style="overflow-x:auto"><table>'+htmlRows+'</table></div>';
     }
-  } catch {}
+    if(/^### /.test(block)) return '<h3>'+inline(block.replace(/^### /,''))+'</h3>';
+    if(/^## /.test(block)) return '<h2>'+inline(block.replace(/^## /,''))+'</h2>';
+    if(/^# /.test(block)) return '<h1>'+inline(block.replace(/^# /,''))+'</h1>';
+    if(lines.every(l=>/^[-*] /.test(l))) return '<ul>'+lines.map(l=>'<li>'+inline(l.replace(/^[-*] /,''))+'</li>').join('')+'</ul>';
+    if(lines.every(l=>/^\d+\. /.test(l))) return '<ol>'+lines.map(l=>'<li>'+inline(l.replace(/^\d+\. /,''))+'</li>').join('')+'</ol>';
+    if(/^> /.test(block)) return '<blockquote>'+inline(block.replace(/^> /gm,''))+'</blockquote>';
+    return '<p>'+lines.map(inline).join('<br>')+'</p>';
+  }).join('');
+}
+function inline(s){
+  return s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+
+document.getElementById('subject').addEventListener('keydown', e=>{ if(e.key==='Enter') generate(); });
+document.getElementById('apiKeyInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+(function restore(){
+  currentLesson=getLesson();
+  renderProviders();
+  const teaser=document.getElementById('weekTeaser');
+  teaser.innerHTML='<p class="mono" style="color:var(--gold)">This week · Q'+QUARTER.quarter+' Lesson '+currentLesson.number+' · '+formatRange(currentLesson)+'</p><h2>'+esc(currentLesson.title)+'</h2><p>After you connect, run Best questions, Video script, and Follow-up on this week\'s study with your Gemini key.</p>';
+  try{
+    const saved=localStorage.getItem('etf_provider') || 'gemini';
+    const savedKey=localStorage.getItem('etf_key_'+saved);
+    if(savedKey){
+      const card=document.querySelector('[data-provider="'+saved+'"]');
+      if(card){ document.querySelectorAll('.provider-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); }
+      activeProvider=saved; apiKey=savedKey;
+      document.getElementById('apiKeyInput').value=savedKey;
+      document.getElementById('keyHint').innerHTML=PROVIDERS[saved].hint;
+      showGen();
+    } else {
+      document.getElementById('apiKeyInput').value = localStorage.getItem('etf_key_gemini') || '';
+    }
+  }catch(e){}
 })();
+
 </script>
 </body>
 </html>
