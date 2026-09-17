@@ -1,0 +1,35 @@
+{
+  "id": "/endtimesfaith/",
+  "name": "End Times Faith",
+  "short_name": "End Times",
+  "description": "Prophetic scripts and this week's SDA Sabbath School lesson study.",
+  "start_url": "/endtimesfaith/",
+  "scope": "/endtimesfaith/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#080808",
+  "theme_color": "#080808",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "lifestyle"],
+  "icons": [
+    {
+      "src": "/endtimesfaith/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/endtimesfaith/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/endtimesfaith/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

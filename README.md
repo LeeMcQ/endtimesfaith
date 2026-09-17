@@ -4,6 +4,10 @@ Live site: [leemcq.github.io/endtimesfaith](https://leemcq.github.io/endtimesfai
 
 Prophetic script generator plus this week’s SDA Adult Sabbath School lesson study.
 
+## Install on your phone
+
+This is a Progressive Web App. On Android Chrome, tap **Install app**. On iPhone Safari: Share → **Add to Home Screen**. After that it opens full-screen like a normal app.
+
 ## Use
 
 1. Open the site and connect with your own API key. **Gemini** is recommended for the lesson tools ([free key](https://aistudio.google.com/apikey)). New Gemini keys start with `AQ.`; older keys start with `AIza`. Both work.
