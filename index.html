@@ -573,10 +573,9 @@ function geminiKey(){
 }
 
 function renderLesson(){
-  currentLesson = getLesson();
-  const l=currentLesson;
-  const teaser=document.getElementById('weekTeaser');
-  teaser.innerHTML='<p class="mono" style="color:var(--gold)">This week · Q'+QUARTER.quarter+' Lesson '+l.number+' · '+formatRange(l)+'</p><h2>'+esc(l.title)+'</h2><p>After you connect, run Best questions, Video script, and Follow-up on this week\'s study with your Gemini key.</p>';
+  const l = currentLesson || getLesson();
+  currentLesson = l;
+  renderTeaser();
   const days=(l.days||[]).map(d=>'<div class="day-item"><span class="mono d">'+esc(d.day)+'</span><span class="t">'+esc(d.title)+'</span> <span class="mono" style="color:var(--text-muted);font-size:10px">'+esc(d.scripture)+'</span><div class="s">'+esc(d.summary)+'</div></div>').join('');
   const sources=(l.sources||[]).map(s=>'<a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.name)+'</a>').join('');
   const gKey=geminiKey();
@@ -585,7 +584,7 @@ function renderLesson(){
     '<input type="password" id="geminiKeyInput" placeholder="AIza… or AQ.…" autocomplete="off" spellcheck="false" style="margin-top:8px">'+
     '<div class="key-hint">Free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Stored only on this device.</div></div>';
   document.getElementById('lessonCard').innerHTML =
-    '<div class="lesson-head"><span class="mono" style="color:var(--gold)">This week\'s lesson study</span><span class="provider-badge badge-paid">Q'+QUARTER.quarter+' '+QUARTER.year+' · Lesson '+l.number+'</span></div>'+
+    '<div class="lesson-head"><span class="mono" style="color:var(--gold)">This week\'s lesson study'+(liveQuarter.live?' · live':'')+'</span><span class="provider-badge badge-paid">Q'+QUARTER.quarter+' '+QUARTER.year+' · Lesson '+l.number+'</span></div>'+
     '<p class="mono" style="color:var(--text-muted)">'+esc(QUARTER.title)+' · '+formatRange(l)+'</p>'+
     '<h2 class="lesson-title">'+esc(l.title)+'</h2>'+
     '<blockquote class="memory"><p>“'+esc(l.memoryText)+'”</p><cite class="mono">'+esc(l.memoryRef)+' · '+esc(l.memoryVersion)+'</cite></blockquote>'+
@@ -700,11 +699,152 @@ function inline(s){
 document.getElementById('subject').addEventListener('keydown', e=>{ if(e.key==='Enter') generate(); });
 document.getElementById('apiKeyInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
-(function restore(){
-  currentLesson=getLesson();
-  renderProviders();
+const LESSON_API = 'https://sabbath-school.adventech.io/api/v1/en/quarterlies';
+const LIVE_CACHE = 'etf_live_lesson_v2';
+let liveQuarter = { year: QUARTER.year, quarter: QUARTER.quarter, title: QUARTER.title, id: '', human: '', live: false };
+
+function parseDMY(s){ const [d,m,y]=s.split('/').map(Number); return new Date(y,m-1,d); }
+function toISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function startOfDay(d){ d=d||new Date(); return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+function inRange(today,start,end){ return today>=parseDMY(start) && today<=parseDMY(end); }
+function stripHtml(html){
+  return String(html||'')
+    .replace(/<script[\s\S]*?<\/script>/gi,'')
+    .replace(/<style[\s\S]*?<\/style>/gi,'')
+    .replace(/<div[^>]*ss-donation[\s\S]*$/i,'')
+    .replace(/<[^>]+>/g,' ')
+    .replace(/&nbsp;/g,' ')
+    .replace(/&/g,'&')
+    .replace(/"/g,'"')
+    .replace(/&#39;/g,"'")
+    .replace(/&ldquo;|&rdquo;/g,'"')
+    .replace(/&lsquo;|&rsquo;/g,"'")
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function firstParagraphs(html, n, skipSnippet){
+  const cleaned = String(html||'')
+    .replace(/<div[^>]*ss-donation[\s\S]*$/i,'')
+    .replace(/<blockquote[\s\S]*?<\/blockquote>/gi,' ')
+    .replace(/<h3[\s\S]*?<\/h3>/gi,' ');
+  const parts = cleaned.split(/<\/p>/i).map(stripHtml).filter(p=>{
+    if(p.length<50) return false;
+    if(!/[a-z]{3,}\s+[a-z]{3,}/.test(p)) return false;
+    if(/^read for/i.test(p) || /^memory text/i.test(p) || /^study this week/i.test(p) || /^supplemental/i.test(p)) return false;
+    if(skipSnippet && p.includes(skipSnippet.slice(0,40))) return false;
+    return true;
+  });
+  return parts.slice(0,n||2).join(' ').slice(0,720);
+}
+function parseMemory(html){
+  const block = (html.match(/Memory Text:[\s\S]{0,800}/i)||[''])[0] || html;
+  const quoted = block.match(/[“"]([^”"]{12,280})[”"]/);
+  const cite = block.match(/\(([\s\S]{0,180}?(?:Corinthians|Matthew|Genesis|John|Romans|Acts|Isaiah|Jeremiah|Timothy|Peter|Revelation|Psalms?|Hebrews|Luke|Mark|Exodus)[\s\S]{0,80}?)\)/i);
+  const citeText = stripHtml(cite?cite[1]:'');
+  const version = ((citeText.match(/\b(ESV|NKJV|NIV|NASB|NRSV|KJV|NLT)\b/i)||['','ESV'])[1]||'ESV').toUpperCase();
+  const ref = citeText.replace(/,?\s*(ESV|NKJV|NIV|NASB|NRSV|KJV|NLT)\s*$/i,'').trim();
+  return { text: quoted?quoted[1].trim():'', ref, version };
+}
+function parseReadForStudy(html){
+  const m = html.match(/Read for This Week[\s\S]*?<\/h3>\s*<p>([\s\S]*?)<\/p>/i);
+  return m ? stripHtml(m[1]).replace(/\s+\./g,'.') : '';
+}
+function parseScripture(html){
+  const m = html.match(/Read\s+<a[^>]*>([^<]+)<\/a>/i) || html.match(/class="verse"[^>]*>([^<]+)</i);
+  return m ? stripHtml(m[1]) : '';
+}
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Sabbath'];
+
+async function fetchJson(url){
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('Lesson feed '+res.status);
+  return res.json();
+}
+function readLiveCache(){
+  try{
+    const cached = JSON.parse(localStorage.getItem(LIVE_CACHE)||'null');
+    if(!cached || !cached.lesson || !cached.fetchedAt) return null;
+    if(Date.now()-cached.fetchedAt > 6*3600*1000) return null;
+    const today = startOfDay();
+    if(today < parseISO(cached.lesson.start) || today > parseISO(cached.lesson.end)) return null;
+    return cached;
+  }catch(e){ return null; }
+}
+async function fetchLiveLesson(){
+  const cached = readLiveCache();
+  if(cached && cached.live) return cached;
+  const list = await fetchJson(LESSON_API+'/index.json');
+  const today = startOfDay();
+  const adults = list.filter(q => /^\d{4}-\d{2}$/.test(q.id) && (!q.quarterly_group || q.quarterly_group.name==='Standard Adult'));
+  let quarterly = adults.find(q => inRange(today, q.start_date, q.end_date))
+    || adults.slice().sort((a,b)=>+parseDMY(b.start_date)-+parseDMY(a.start_date)).find(q => today>=parseDMY(q.start_date))
+    || adults[0];
+  if(!quarterly) throw new Error('No adult quarterly found');
+  const pack = await fetchJson(LESSON_API+'/'+quarterly.id+'/index.json');
+  const week = (pack.lessons||[]).find(l => inRange(today, l.start_date, l.end_date)) || (pack.lessons||[])[(pack.lessons||[]).length-1];
+  if(!week) throw new Error('No lesson in this quarterly');
+  const lessonPack = await fetchJson(LESSON_API+'/'+quarterly.id+'/lessons/'+week.id+'/index.json');
+  const daysMeta = (lessonPack.days||[]).slice(0,8);
+  const dayReads = await Promise.all(daysMeta.map(async day => {
+    try{
+      const read = await fetchJson(LESSON_API+'/'+quarterly.id+'/lessons/'+week.id+'/days/'+day.id+'/read/index.json');
+      return { day, read };
+    }catch(e){ return { day, read: null }; }
+  }));
+  const sabbathHtml = (dayReads[0]&&dayReads[0].read&&dayReads[0].read.content) || '';
+  const memory = parseMemory(sabbathHtml);
+  const parts = quarterly.id.split('-');
+  const year = +parts[0], qn = +parts[1], number = parseInt(week.id,10);
+  const qLetter = ['a','b','c','d'][qn-1] || 'c';
+  const lesson = {
+    number, title: week.title,
+    start: toISO(parseDMY(week.start_date)),
+    end: toISO(parseDMY(week.end_date)),
+    memoryText: memory.text, memoryRef: memory.ref, memoryVersion: memory.version,
+    readForStudy: parseReadForStudy(sabbathHtml),
+    overview: firstParagraphs(sabbathHtml, 3, memory.text),
+    year, quarter: qn, quarterTitle: (pack.quarterly&&pack.quarterly.title) || quarterly.title,
+    days: dayReads.slice(0,7).map(item => {
+      const html = (item.read&&item.read.content) || '';
+      const date = parseDMY((item.read&&item.read.date) || item.day.date);
+      return {
+        day: DAY_NAMES[date.getDay()],
+        title: (item.read&&item.read.title) || item.day.title,
+        scripture: parseScripture(html),
+        summary: firstParagraphs(html, 2, memory.text)
+      };
+    }),
+    sources: [
+      { name:'Adult Bible Study Guide', url:'https://www.sabbath.school/Lesson?year='+year+'&quarter='+qn+'&lesson='+number },
+      { name:'Sabbath School App', url:'https://sabbath-school.adventech.io/en/'+quarterly.id+'/'+String(number).padStart(2,'0') },
+      { name:'Sabbath School Net', url:'https://ssnet.org/lessons/'+String(year).slice(2)+qLetter+'/less'+String(number).padStart(2,'0')+'.html' }
+    ]
+  };
+  const bundle = {
+    quarterly: { year, quarter: qn, title: lesson.quarterTitle, id: quarterly.id, human: (pack.quarterly&&pack.quarterly.human_date)||quarterly.human_date||'' },
+    lesson, live: true, fetchedAt: Date.now()
+  };
+  try{ localStorage.setItem(LIVE_CACHE, JSON.stringify(bundle)); }catch(e){}
+  return bundle;
+}
+function applyLive(bundle){
+  if(!bundle || !bundle.lesson) return;
+  currentLesson = bundle.lesson;
+  QUARTER.year = bundle.quarterly.year;
+  QUARTER.quarter = bundle.quarterly.quarter;
+  QUARTER.title = bundle.quarterly.title;
+  liveQuarter = Object.assign({}, bundle.quarterly, { live: !!bundle.live });
+  renderTeaser();
+  if(!document.getElementById('genPage').classList.contains('hidden')) renderLesson();
+}
+function renderTeaser(){
+  const l = currentLesson || getLesson();
   const teaser=document.getElementById('weekTeaser');
-  teaser.innerHTML='<p class="mono" style="color:var(--gold)">This week · Q'+QUARTER.quarter+' Lesson '+currentLesson.number+' · '+formatRange(currentLesson)+'</p><h2>'+esc(currentLesson.title)+'</h2><p>After you connect, run Best questions, Video script, and Follow-up on this week\'s study with your Gemini key.</p>';
+  if(!teaser) return;
+  teaser.innerHTML='<p class="mono" style="color:var(--gold)">This week'+(liveQuarter.live?' · live':'')+' · Q'+QUARTER.quarter+' Lesson '+l.number+' · '+formatRange(l)+'</p><h2>'+esc(l.title)+'</h2><p>After you connect, run Best questions, Video script, and Follow-up on this week\'s study with your Gemini key. The lesson updates automatically each week.</p>';
+}
+
+function restoreSession(){
   try{
     const saved=localStorage.getItem('etf_provider') || 'gemini';
     const savedKey=localStorage.getItem('etf_key_'+saved);
@@ -719,7 +859,20 @@ document.getElementById('apiKeyInput').addEventListener('keydown', e=>{ if(e.key
       document.getElementById('apiKeyInput').value = localStorage.getItem('etf_key_gemini') || '';
     }
   }catch(e){}
+}
+(async function boot(){
+  currentLesson=getLesson();
+  renderProviders();
+  renderTeaser();
+  restoreSession();
+  try{
+    const liveBundle = await fetchLiveLesson();
+    applyLive(liveBundle);
+  }catch(e){
+    console.warn('Live lesson feed unavailable, using fallback', e);
+  }
 })();
+
 
 </script>
 </body>
