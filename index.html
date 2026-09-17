@@ -463,7 +463,7 @@ function doLogin(){
   err.classList.remove('show');
   if(!key){ err.textContent='Please paste your API key before connecting.'; err.classList.add('show'); return; }
   if(!looksLikeKey(activeProvider,key)){
-    err.textContent="That doesn't look like a "+PROVIDERS[activeProvider].name+" key. Expected format: "+keyPlaceholder(activeProvider)+";
+    err.textContent="That doesn't look like a "+PROVIDERS[activeProvider].name+" key. Expected format: "+keyPlaceholder(activeProvider);
     err.classList.add('show'); return;
   }
   apiKey=key;
