@@ -559,11 +559,15 @@ const PROVIDERS = {
   openai: { name: 'ChatGPT', label: 'ChatGPT (OpenAI)', model: 'gpt-4o-mini', modelLabel: 'gpt-4o-mini', tier: 'paid', prefix: 'sk-',
     hint: 'Get a key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a> — pay-as-you-go pricing.' },
   groq: { name: 'Groq', label: 'Groq · Llama 3.3', model: 'llama-3.3-70b-versatile', modelLabel: 'llama-3.3-70b', tier: 'free', prefix: 'gsk_',
-    hint: 'Get a <strong>free</strong> key at <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a> — no credit card needed.' },
+    hint: 'Get a <strong>free</strong> key at <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a> — no credit card needed. Not the same as Grok.' },
+  grok: { name: 'Grok', label: 'Grok (xAI)', model: 'grok-4-fast', modelLabel: 'grok-4-fast', tier: 'paid', prefix: 'xai-',
+    hint: 'Get a key at <a href="https://console.x.ai" target="_blank" rel="noopener">console.x.ai</a>. Keys start with <strong>xai-</strong>. This is xAI Grok, not Groq.' },
+  deepseek: { name: 'DeepSeek', label: 'DeepSeek', model: 'deepseek-chat', modelLabel: 'deepseek-chat', tier: 'paid', prefix: 'sk-',
+    hint: 'Get a key at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a>. Keys start with <strong>sk-</strong>.' },
   openrouter: { name: 'OpenRouter', label: 'OpenRouter · Llama 3.1', model: 'meta-llama/llama-3.1-8b-instruct:free', modelLabel: 'llama-3.1-8b:free', tier: 'free', prefix: 'sk-or-',
     hint: 'Get a <strong>free</strong> key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — free models available.' }
 };
-const PROVIDER_ORDER = ['gemini','anthropic','openai','groq','openrouter'];
+const PROVIDER_ORDER = ['gemini','grok','deepseek','anthropic','openai','groq','openrouter'];
 
 const SYSTEM_PROMPT = "You are the exclusive scriptwriter for the End Times Faith YouTube channel. Your videos are raw, urgent, prophetic exposés that tear down modern \"Christian\" habits, traditions, routines, songs, symbols, activities, and teachings that look holy but actually replace, undermine, hide disobedience, or quietly contradict Scripture. Always call people back to simple New Testament obedience — and always anchor the conclusion in the Sabbath truth as revealed in Scripture and affirmed by Ellen G. White's The Great Controversy.\n\nOutput ONLY a clean .en.txt subtitle file — nothing else. Zero markdown. Zero preamble.\n\nStructure to follow EXACTLY:\n\n1. TITLE (first line): Auto-generate the perfect clickbait title for the subject given. Patterns:\n   - \"Every \"Christian\" [Subject] That [REPLACES Scripture / UNDERMINES Grace / HIDES Disobedience / QUIETLY Changed the Faith]\"\n   - \"Every [Subject] That Looks Holy But Hides…\"\n   - \"Why [Subject] Replaces Real Discipleship\"\n\n2. HOOK (lines 2–8): Short punchy lines, 5–12 words max. Use openers like:\n   \"We call ourselves Bible-believing… but most of us barely open it.\"\n   \"But what if I told you…\"\n   \"Every 'Christian' who still does this…\"\n   End hook with a shocking statement + \"…\"\n\n3. THESIS (4–6 lines): Boldly name the problem using CAPS: REPLACES, UNDERMINES, HIDES DISOBEDIENCE, QUIETLY, TRAINS YOU TO, FOOLS YOU INTO.\n\n4. MAIN BODY (9–15 numbered points). Each point must follow this exact micro-pattern:\n   Line 1: Vivid modern scene\n   Line 2–3: \"This trains you to [negative]. It trains you to [another negative].\"\n   Line 4: \"It quietly [harm]…\" or \"This fools you into thinking [false security]…\"\n   Line 5–6: \"But when you open Scripture…\"\n   Line 7: Direct Bible quote or reference + contrast with Jesus or the early church\n   Line 8: \"This is not obedience — this is [strong accusation].\"\n   Every single line: 5–12 words. One thought per line.\n\n5. CONCLUSION (last 10–13 lines):\n   Summarise the root issue (culture over Christ / performance over obedience / tradition over truth).\n   Then write EXACTLY these lines (do not alter them):\n   \"Drop the tradition.\"\n   \"Return to the Bible alone.\"\n   \"As Ellen G. White wrote in The Great Controversy, p. 605:\"\n   '\"The Sabbath will be the great test of loyalty,'\n   'for it is the point of truth especially controverted.\"'\n   \"Drop the tradition. Return to the Bible alone.\"\n   End with comment bait: \"Which one of these are you still doing?\" or \"What did this video expose in your life? Drop it in the comments.\"\n\nTone (non-negotiable):\n- Urgent, loving, uncompromising. Speak directly to \"you\".\n- Super-short lines for subtitle timing.\n- Lots of … and selective CAPS for punch.\n- \"This trains you to…\" and \"It quietly…\" are your signature phrases.\n- Zero filler. Zero softening. Zero markdown.\n\nNow generate the FULL subtitle script for the subject:";
 
@@ -629,8 +633,9 @@ const STUDY = {
 
 function looksLikeKey(id, key){
   if(id==='gemini') return key.startsWith('AIza') || key.startsWith('AQ.');
+  if(id==='grok') return key.startsWith('xai-');
+  if(id==='openai' || id==='deepseek') return key.startsWith('sk-') && !key.startsWith('sk-ant-') && !key.startsWith('sk-or-');
   const p = PROVIDERS[id].prefix;
-  if(id==='openai') return key.startsWith('sk-') && !key.startsWith('sk-ant-') && !key.startsWith('sk-or-');
   return key.startsWith(p);
 }
 function keyPlaceholder(id){
@@ -806,6 +811,8 @@ async function callProvider(subject){
   if(activeProvider==='anthropic') return callAnthropic(apiKey, subject);
   if(activeProvider==='openai') return callOpenAICompat('https://api.openai.com/v1/chat/completions', apiKey, PROVIDERS.openai.model, subject);
   if(activeProvider==='groq') return callOpenAICompat('https://api.groq.com/openai/v1/chat/completions', apiKey, PROVIDERS.groq.model, subject);
+  if(activeProvider==='grok') return callOpenAICompat('https://api.x.ai/v1/chat/completions', apiKey, PROVIDERS.grok.model, subject);
+  if(activeProvider==='deepseek') return callOpenAICompat('https://api.deepseek.com/chat/completions', apiKey, PROVIDERS.deepseek.model, subject);
   return callOpenAICompat('https://openrouter.ai/api/v1/chat/completions', apiKey, PROVIDERS.openrouter.model, subject, { 'HTTP-Referer':'https://leemcq.github.io/endtimesfaith/','X-Title':'End Times Faith' });
 }
 
