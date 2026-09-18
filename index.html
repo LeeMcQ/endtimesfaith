@@ -302,11 +302,12 @@ input:focus { box-shadow: 0 0 0 1px var(--gold-dim), 0 0 0 4px var(--gold-soft);
 .ios-actions .ghost { background: transparent; color: var(--text-muted); box-shadow: var(--shadow); }
 @keyframes shakeInput { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
 @media (min-width: 640px) {
-  .study-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .study-grid { grid-template-columns: 1fr 1fr; }
   .week-strip { grid-template-columns: 1fr 1fr; }
   .panel { padding: 22px 20px calc(var(--dock-h) + 32px + env(safe-area-inset-bottom)); }
 }
 @media (min-width: 900px) {
+  .study-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
   .week-strip { grid-template-columns: repeat(7, 1fr); }
   .day-card .s { font-size: 14px; }
 }
@@ -493,10 +494,24 @@ function buildScriptPrompt(l){
 function buildFollowupPrompt(l){
   return 'You are a veteran SDA Sabbath School teacher, biblical scholar, and small-group facilitator. Generate follow-up questions for this week\'s Adult Sabbath School lesson.\n\n'+lessonContext(l)+'\n\nProduce three sections. Do not answer the questions. For each question, add one italic line: what a rich conversation might open — not the answer.\n\n1. CLASS DISCUSSION (8–10 questions)\nRanked from most essential to most stretching. These should work out loud in a mixed-age Sabbath School class without shaming anyone. Include at least two that force people to handle a real verse, not a slogan.\n\n2. PERSONAL APPLICATION (6 questions)\nPress the lesson into Monday morning. Address unspoken burdens that fit THIS text: spiritual-warfare fatigue, fear of being deceived, church conflict, mistaking gentleness for cowardice, mistaking boldness for flesh, the exhaustion of defending yourself, sitting with an unrepentant family member.\n\n3. GOING DEEPER (5 questions)\nThe questions the quarterly almost asks. Linguistic, historical, or pastoral tensions. One of them should be slightly dangerous — a question that could split the class in a fruitful way.\n\nClose with 3 "leave-the-room" questions a teacher can read while people pack hymnals.\n\nPresent in clean markdown. No preamble, no sign-off.';
 }
+function panelNotesUrl(l){
+  const y = QUARTER.year;
+  const q = QUARTER.quarter;
+  const n = l.number;
+  return 'https://3abnsabbathschoolpanel.com/ssp-note/'+y+'/Q'+q+'/'+y+'-Q'+q+'-Week-'+n+'.html';
+}
+function panelNotesListUrl(){
+  return 'https://3abnsabbathschoolpanel.com/ssp-note/'+QUARTER.year+'/Q'+QUARTER.quarter+'/'+QUARTER.year+'-Q'+QUARTER.quarter+'-note-list.html';
+}
+function buildPanelNotesPrompt(l){
+  const url = panelNotesUrl(l);
+  return 'This following website has custom notes: '+url+'\n\nYour assignment: compare these 3ABN Sabbath School Panel custom notes to the standard Adult Sabbath School lesson study notes, and provide the comparative information that the standard lesson study is NOT discussing. Highlight each unique point for each day.\n\n'+lessonContext(l)+'\n\nHow to work:\n- Open and read the 3ABN notes page above. Follow any linked daily PDF notes (Sunday–Thursday panelist notes). If a PDF is named like Jill-Morikone-…-The-Grace-of-Jesus.pdf, use that day\'s title and panelist.\n- Quarter index if needed: '+panelNotesListUrl()+'\n- The STANDARD notes are the official Adult Bible Study Guide for this week, already given in the lesson context (overview, memory text, daily titles/scripture/summaries, read-for-study list). Also check ssnet.org / Adult Bible Study Guide pages for the same lesson if you need the official wording.\n- Compare day by day: Sabbath, Sunday, Monday, Tuesday, Wednesday, Thursday, Friday. 3ABN often publishes Sunday–Thursday panelist PDFs; still cover Sabbath and Friday from the quarterly vs any panel intro/wrap.\n\nOutput (markdown, no preamble):\n\n# What 3ABN adds this week\nOne short paragraph: the panel\'s overall emphasis vs the quarterly\'s overall emphasis.\n\nThen one section per day, in this order, using these headings:\n## Sabbath\n## Sunday\n## Monday\n## Tuesday\n## Wednesday\n## Thursday\n## Friday\n\nUnder each day use this exact mini-table (one table per day):\n\n| | |\n|---|---|\n| Quarterly focus | (one or two sentences from the official lesson for that day) |\n| 3ABN panelist | Name and their note title, or "no 3ABN note this day" |\n| What the quarterly is not discussing | Bullet the unique 3ABN points the official notes skip, soften, or never raise. Quote or close-paraphrase. This is the whole point of the section — do not repeat the quarterly. |\n| Why it matters | One pastoral/class sentence. |\n\nRules:\n- Highlight ONLY extras: illustrations, EGW citations, linguistic notes, pastoral warnings, stories, applications, and theological angles present in 3ABN notes but absent from the standard quarterly.\n- If 3ABN and the quarterly say the same thing, skip it. Silence is better than filler.\n- Do not invent 3ABN content. If the notes page or PDFs cannot be read, say so under that day and list what you could verify.\n- Keep language plain. No sermon close.';
+}
 const STUDY = {
   questions: { label: 'Best questions', blurb: 'Ranked forum, YouTube, and class questions from this week\'s study — plus the replies that cut deepest.', useSearch: true, maxTokens: 8192, build: buildQuestionsPrompt, title: 'Best questions' },
   script: { label: 'Video script', blurb: 'A cinematic, scholarly YouTube script on the heart of this week\'s passage.', useSearch: false, maxTokens: 8192, build: buildScriptPrompt, title: 'Video script' },
-  followup: { label: 'Follow-up questions', blurb: 'Class, personal, and going-deeper questions the quarterly almost asks — but doesn\'t.', useSearch: false, maxTokens: 6144, build: buildFollowupPrompt, title: 'Follow-up questions' }
+  followup: { label: 'Follow-up questions', blurb: 'Class, personal, and going-deeper questions the quarterly almost asks — but doesn\'t.', useSearch: false, maxTokens: 6144, build: buildFollowupPrompt, title: 'Follow-up questions' },
+  panel: { label: '3ABN notes', blurb: 'What the 3ABN Sabbath School Panel discusses that the quarterly does not — day by day.', useSearch: true, maxTokens: 8192, build: buildPanelNotesPrompt, title: '3ABN extras' }
 };
 
 function looksLikeKey(id, key){
@@ -698,11 +713,12 @@ function renderLesson(){
     const on = d.day===today ? ' today' : '';
     return '<article class="day-card'+on+'"><span class="mono d">'+esc(d.day)+(d.day===today?' · today':'')+'</span><span class="t">'+esc(d.title)+'</span><span class="mono ref">'+esc(d.scripture)+'</span><div class="s">'+esc(d.summary)+'</div></article>';
   }).join('');
-  const sources=(l.sources||[]).map(s=>'<a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.name)+'</a>').join('');
+  const sources=(l.sources||[]).map(s=>'<a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.name)+'</a>').join('')
+    + '<a href="'+esc(panelNotesUrl(l))+'" target="_blank" rel="noopener">3ABN Panel Notes</a>';
   const gKey=geminiKey();
   const geminiField = gKey
     ? '<p class="mono status-line">Gemini ready · 3.6 Flash</p>'
-    : '<div class="connect-hint"><p>Connect Gemini to run this week’s three study buttons.</p><button class="btn-primary" type="button" onclick="setTab(\'key\')">Connect Gemini</button></div>';
+    : '<div class="connect-hint"><p>Connect Gemini to run this week’s four study buttons.</p><button class="btn-primary" type="button" onclick="setTab(\'key\')">Connect Gemini</button></div>';
   document.getElementById('lessonCard').innerHTML =
     '<article class="hero">'+
       '<p class="mono kicker">This week'+(liveQuarter.live?' · live':'')+' · Q'+QUARTER.quarter+' '+QUARTER.year+' · Lesson '+l.number+'</p>'+
@@ -712,7 +728,7 @@ function renderLesson(){
       '<p class="overview">'+esc(l.overview)+'</p>'+
       (l.readForStudy?'<p class="read-line"><span class="mono" style="color:var(--gold)">Read</span> '+esc(l.readForStudy)+'</p>':'')+
       geminiField+
-      '<div class="study-grid">'+studyButton('questions')+studyButton('script')+studyButton('followup')+'</div>'+
+      '<div class="study-grid">'+studyButton('questions')+studyButton('script')+studyButton('followup')+studyButton('panel')+'</div>'+
       '<div class="prompt-links" id="promptLinks" style="display:none">'+
         '<button type="button" onclick="togglePrompt()">View prompt</button>'+
         '<button type="button" onclick="copyPrompt()">Copy prompt</button>'+
@@ -764,7 +780,7 @@ async function runStudy(id){
   document.getElementById('studyOutputWrap').classList.remove('visible');
   const loading=document.getElementById('studyLoading'); const status=document.getElementById('studyStatus');
   loading.classList.add('active');
-  status.textContent = id==='questions' ? 'Searching lesson studies and ranking the best questions…' : id==='script' ? 'Writing the cinematic study script…' : 'Drafting follow-up questions…';
+  status.textContent = id==='questions' ? 'Searching lesson studies and ranking the best questions…' : id==='script' ? 'Writing the cinematic study script…' : id==='panel' ? 'Comparing 3ABN panel notes with this week’s quarterly…' : 'Drafting follow-up questions…';
   try{
     const action=STUDY[id];
     const text=await callGemini(key, action.build(currentLesson), { useSearch: action.useSearch, maxTokens: action.maxTokens });
