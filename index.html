@@ -529,7 +529,7 @@ button:not(:disabled), [role="button"]:not(:disabled) { cursor: pointer; }
 
   <section class="panel hidden" id="panel-key">
     <h1 class="section-title">Connect your AI</h1>
-    <p class="lead">Your key stays on this phone and is sent only to the provider you choose. Gemini is best for this week’s study.</p>
+    <p class="lead">Your key stays on this phone. Use Gemini, Grok, DeepSeek, Claude, ChatGPT, Groq, or OpenRouter. Gemini is best for live forum search; the others still run this week’s study from the lesson text.</p>
     <span class="mono providers-label">Provider</span>
     <div class="provider-grid" id="providerGrid"></div>
     <div class="key-group">
@@ -560,10 +560,10 @@ const PROVIDERS = {
     hint: 'Get a key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a> — pay-as-you-go pricing.' },
   groq: { name: 'Groq', label: 'Groq · Llama 3.3', model: 'llama-3.3-70b-versatile', modelLabel: 'llama-3.3-70b', tier: 'free', prefix: 'gsk_',
     hint: 'Get a <strong>free</strong> key at <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a> — no credit card needed. Not the same as Grok.' },
-  grok: { name: 'Grok', label: 'Grok (xAI)', model: 'grok-4-fast', modelLabel: 'grok-4-fast', tier: 'paid', prefix: 'xai-',
-    hint: 'Get a key at <a href="https://console.x.ai" target="_blank" rel="noopener">console.x.ai</a>. Keys start with <strong>xai-</strong>. This is xAI Grok, not Groq.' },
+  grok: { name: 'Grok', label: 'Grok (xAI)', model: 'grok-4', modelLabel: 'grok-4', tier: 'paid', prefix: 'xai-',
+    hint: 'Get a key at <a href="https://console.x.ai" target="_blank" rel="noopener">console.x.ai</a>. Keys start with <strong>xai-</strong>. This is xAI Grok, not Groq. Browser calls sometimes fail — if you see a CORS error, run Grok via OpenRouter instead.' },
   deepseek: { name: 'DeepSeek', label: 'DeepSeek', model: 'deepseek-chat', modelLabel: 'deepseek-chat', tier: 'paid', prefix: 'sk-',
-    hint: 'Get a key at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a>. Keys start with <strong>sk-</strong>.' },
+    hint: 'Get a key at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a>. Keys start with <strong>sk-</strong>. If the browser blocks DeepSeek, use OpenRouter.' },
   openrouter: { name: 'OpenRouter', label: 'OpenRouter · Llama 3.1', model: 'meta-llama/llama-3.1-8b-instruct:free', modelLabel: 'llama-3.1-8b:free', tier: 'free', prefix: 'sk-or-',
     hint: 'Get a <strong>free</strong> key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — free models available.' }
 };
@@ -786,34 +786,56 @@ async function callGemini(key, prompt, opts){
     throw e;
   }
 }
-async function callAnthropic(key, subject){
+async function callAnthropic(key, userText, opts){
+  opts = opts || {};
   const res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{ 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
-    body: JSON.stringify({ model: PROVIDERS.anthropic.model, max_tokens:1500, system: SYSTEM_PROMPT, messages:[{role:'user',content:subject}] })
+    body: JSON.stringify({ model: PROVIDERS.anthropic.model, max_tokens: opts.maxTokens || 4096, system: opts.system || SYSTEM_PROMPT, messages:[{role:'user',content:userText}] })
   });
   const data=await res.json().catch(()=>({}));
   if(!res.ok) throw new Error((data.error&&data.error.message)||'Anthropic error '+res.status);
   return (data.content||[]).map(b=>b.text||'').join('');
 }
-async function callOpenAICompat(url, key, model, subject, extra){
-  const res=await fetch(url,{
-    method:'POST',
-    headers: Object.assign({ 'Content-Type':'application/json', Authorization:'Bearer '+key }, extra||{}),
-    body: JSON.stringify({ model, max_tokens:1500, messages:[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:subject}] })
-  });
+async function callOpenAICompat(url, key, model, userText, extra, opts){
+  opts = opts || {};
+  const system = opts.system === undefined ? SYSTEM_PROMPT : opts.system;
+  const messages = [];
+  if(system) messages.push({role:'system',content:system});
+  messages.push({role:'user',content:userText});
+  let res;
+  try{
+    res=await fetch(url,{
+      method:'POST',
+      headers: Object.assign({ 'Content-Type':'application/json', Authorization:'Bearer '+key }, extra||{}),
+      body: JSON.stringify({ model, max_tokens: opts.maxTokens || 4096, messages })
+    });
+  }catch(e){
+    throw new Error((PROVIDERS[activeProvider]&&PROVIDERS[activeProvider].name||'This provider')+' blocked the browser request (CORS). Use Gemini or Groq, or call it through OpenRouter.');
+  }
   const data=await res.json().catch(()=>({}));
   if(!res.ok) throw new Error((data.error&&data.error.message)||'Provider error '+res.status);
   return (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
 }
+function providerEndpoint(id){
+  if(id==='openai') return ['https://api.openai.com/v1/chat/completions', PROVIDERS.openai.model, null];
+  if(id==='groq') return ['https://api.groq.com/openai/v1/chat/completions', PROVIDERS.groq.model, null];
+  if(id==='grok') return ['https://api.x.ai/v1/chat/completions', PROVIDERS.grok.model, null];
+  if(id==='deepseek') return ['https://api.deepseek.com/chat/completions', PROVIDERS.deepseek.model, null];
+  return ['https://openrouter.ai/api/v1/chat/completions', PROVIDERS.openrouter.model, { 'HTTP-Referer':'https://leemcq.github.io/endtimesfaith/','X-Title':'End Times Faith' }];
+}
+async function complete(prompt, opts){
+  opts = opts || {};
+  const provider = opts.provider || activeProvider;
+  const key = opts.key || apiKey;
+  const maxTokens = opts.maxTokens || 4096;
+  if(provider==='gemini') return callGemini(key, prompt, { system: opts.system, maxTokens: maxTokens, useSearch: !!opts.useSearch });
+  if(provider==='anthropic') return callAnthropic(key, prompt, { system: opts.system || '', maxTokens: maxTokens });
+  const ep = providerEndpoint(provider);
+  return callOpenAICompat(ep[0], key, ep[1], prompt, ep[2], { system: opts.system || '', maxTokens: maxTokens });
+}
 async function callProvider(subject){
-  if(activeProvider==='gemini') return callGemini(apiKey, subject, { system: SYSTEM_PROMPT, maxTokens: 8192 });
-  if(activeProvider==='anthropic') return callAnthropic(apiKey, subject);
-  if(activeProvider==='openai') return callOpenAICompat('https://api.openai.com/v1/chat/completions', apiKey, PROVIDERS.openai.model, subject);
-  if(activeProvider==='groq') return callOpenAICompat('https://api.groq.com/openai/v1/chat/completions', apiKey, PROVIDERS.groq.model, subject);
-  if(activeProvider==='grok') return callOpenAICompat('https://api.x.ai/v1/chat/completions', apiKey, PROVIDERS.grok.model, subject);
-  if(activeProvider==='deepseek') return callOpenAICompat('https://api.deepseek.com/chat/completions', apiKey, PROVIDERS.deepseek.model, subject);
-  return callOpenAICompat('https://openrouter.ai/api/v1/chat/completions', apiKey, PROVIDERS.openrouter.model, subject, { 'HTTP-Referer':'https://leemcq.github.io/endtimesfaith/','X-Title':'End Times Faith' });
+  return complete(subject, { system: SYSTEM_PROMPT, maxTokens: 8192 });
 }
 
 async function generate(){
@@ -868,9 +890,11 @@ function renderLesson(){
   const sources=(l.sources||[]).map(s=>'<a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.name)+'</a>').join('')
     + '<a href="'+esc(panelNotesUrl(l))+'" target="_blank" rel="noopener">3ABN Panel Notes</a>';
   const gKey=geminiKey();
-  const geminiField = gKey
-    ? '<p class="mono status-line">Gemini ready · 3.6 Flash</p>'
-    : '<div class="connect-hint"><p>Connect Gemini to run this week’s four study buttons.</p><button class="btn-primary" type="button" onclick="setTab(\'key\')">Connect Gemini</button></div>';
+  const ready = (apiKey && looksLikeKey(activeProvider, apiKey)) || gKey;
+  const runName = (apiKey && looksLikeKey(activeProvider, apiKey)) ? PROVIDERS[activeProvider].name+' · '+PROVIDERS[activeProvider].modelLabel : (gKey ? 'Gemini · 3.6 Flash' : '');
+  const geminiField = ready
+    ? '<p class="mono status-line">Ready on '+esc(runName)+'</p>'
+    : '<div class="connect-hint"><p>Connect Gemini, Grok, DeepSeek, or another provider to run this week’s study buttons.</p><button class="btn-primary" type="button" onclick="setTab(\'key\')">Connect an AI</button></div>';
   document.getElementById('lessonCard').innerHTML =
     '<article class="hero">'+
       '<p class="mono kicker">This week'+(liveQuarter.live?' · live':'')+' · Q'+QUARTER.quarter+' '+QUARTER.year+' · Lesson '+l.number+'</p>'+
@@ -911,20 +935,17 @@ async function copyPrompt(){
   if(!activeStudy) return;
   try{ await navigator.clipboard.writeText(STUDY[activeStudy].build(currentLesson)); }catch(e){}
 }
-function getStudyKey(){
-  const extra=document.getElementById('geminiKeyInput');
-  if(extra && extra.value.trim()){
-    const k=extra.value.trim();
-    if(looksLikeKey('gemini',k)){ try{ localStorage.setItem('etf_key_gemini',k);}catch(e){} return k; }
-  }
-  return geminiKey();
+function getStudySession(){
+  if(apiKey && looksLikeKey(activeProvider, apiKey)) return { key: apiKey, provider: activeProvider };
+  const g = geminiKey();
+  if(g) return { key: g, provider: 'gemini' };
+  return null;
 }
 async function runStudy(id){
   const err=document.getElementById('studyError');
   err.classList.remove('show');
-  const key=getStudyKey();
-  if(!key){ setTab('key'); const kerr=document.getElementById('loginError'); if(kerr){ kerr.textContent='Paste your Gemini API key to run this week\'s study.'; kerr.classList.add('show'); } return; }
-  if(!looksLikeKey('gemini',key)){ err.textContent='That doesn\'t look like a Gemini key. New keys start with AQ. Older keys start with AIza.'; err.classList.add('show'); return; }
+  const session=getStudySession();
+  if(!session){ setTab('key'); const kerr=document.getElementById('loginError'); if(kerr){ kerr.textContent='Save a provider key to run this week\'s study. Gemini, Grok, and DeepSeek all work.'; kerr.classList.add('show'); } return; }
   activeStudy=id; showPrompt=false;
   document.querySelectorAll('.study-btn').forEach(b=>b.classList.remove('active'));
   const btn=document.getElementById('btn-'+id); if(btn) btn.classList.add('active');
@@ -934,18 +955,28 @@ async function runStudy(id){
   document.getElementById('studyOutputWrap').classList.remove('visible');
   const loading=document.getElementById('studyLoading'); const status=document.getElementById('studyStatus');
   loading.classList.add('active');
-  status.textContent = id==='questions' ? 'Searching lesson studies and ranking the best questions…' : id==='script' ? 'Writing the cinematic study script…' : id==='panel' ? 'Comparing 3ABN panel notes with this week’s quarterly…' : 'Drafting follow-up questions…';
+  const searching = id==='questions' && session.provider==='gemini';
+  status.textContent = searching ? 'Searching lesson studies and ranking the best questions…' : id==='script' ? 'Writing the cinematic study script…' : id==='panel' ? 'Comparing 3ABN panel notes with this week’s quarterly…' : id==='questions' ? 'Ranking the best questions from this week’s lesson…' : 'Drafting follow-up questions…';
   try{
     const action=STUDY[id];
-    const text=await callGemini(key, action.build(currentLesson), { useSearch: action.useSearch, maxTokens: action.maxTokens });
+    let text=await complete(action.build(currentLesson), {
+      provider: session.provider,
+      key: session.key,
+      useSearch: !!action.useSearch && session.provider==='gemini',
+      maxTokens: action.maxTokens,
+      system: ''
+    });
+    if(action.useSearch && session.provider!=='gemini'){
+      text = '*Live web search needs Gemini. This pass used '+PROVIDERS[session.provider].name+' on the lesson text itself.*\n\n'+text;
+    }
     lastStudy=text;
-    document.getElementById('studyOutTitle').textContent=action.title+' · Lesson '+currentLesson.number;
+    document.getElementById('studyOutTitle').textContent=action.title+' · Lesson '+currentLesson.number+' · '+PROVIDERS[session.provider].name;
     document.getElementById('studyOutBox').innerHTML=renderMarkdown(text);
     bindVerses(document.getElementById('studyOutBox'));
     document.getElementById('studyOutputWrap').classList.add('visible');
     setTimeout(()=>document.getElementById('studyOutputWrap').scrollIntoView({behavior:'smooth',block:'start'}),80);
   }catch(e){
-    err.textContent=e.message||'Something went wrong. Check your Gemini API key.'; err.classList.add('show');
+    err.textContent=e.message||'Something went wrong. Check your API key.'; err.classList.add('show');
   }finally{
     loading.classList.remove('active'); status.textContent='';
     document.querySelectorAll('.study-btn').forEach(b=>b.disabled=false);
