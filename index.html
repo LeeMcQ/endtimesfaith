@@ -529,7 +529,7 @@ button:not(:disabled), [role="button"]:not(:disabled) { cursor: pointer; }
 
   <section class="panel hidden" id="panel-key">
     <h1 class="section-title">Connect your AI</h1>
-    <p class="lead">Your key stays on this phone. Use Gemini, Grok, DeepSeek, Claude, ChatGPT, Groq, or OpenRouter. Gemini is best for live forum search; the others still run this week’s study from the lesson text.</p>
+    <p class="lead">Your key stays on this phone. Use Gemini, Jev, Grok, DeepSeek, Claude, ChatGPT, Groq, or OpenRouter. Gemini is best for live forum search; the others still run this week’s study from the lesson text.</p>
     <span class="mono providers-label">Provider</span>
     <div class="provider-grid" id="providerGrid"></div>
     <div class="key-group">
@@ -562,12 +562,14 @@ const PROVIDERS = {
     hint: 'Get a <strong>free</strong> key at <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a> — no credit card needed. Not the same as Grok.' },
   grok: { name: 'Grok', label: 'Grok (xAI)', model: 'grok-4', modelLabel: 'grok-4', tier: 'paid', prefix: 'xai-',
     hint: 'Get a key at <a href="https://console.x.ai" target="_blank" rel="noopener">console.x.ai</a>. Keys start with <strong>xai-</strong>. This is xAI Grok, not Groq. Browser calls sometimes fail — if you see a CORS error, run Grok via OpenRouter instead.' },
+  jev: { name: 'Jev', label: 'Jev (TypeSafe)', model: 'jev-latest', modelLabel: 'jev-latest', tier: 'paid', prefix: 'sk- / sk-or-',
+    hint: 'Jev is TypeSafe’s System One model. Get a key at <a href="https://console.typesafe.ai" target="_blank" rel="noopener">console.typesafe.ai</a> (waitlist) or use an <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter</a> key — OpenRouter serves <strong>typesafe/jev-latest</strong> with no waitlist. Jev ranks and judges the lesson; it does not write long prose like Gemini or Grok.' },
   deepseek: { name: 'DeepSeek', label: 'DeepSeek', model: 'deepseek-chat', modelLabel: 'deepseek-chat', tier: 'paid', prefix: 'sk-',
     hint: 'Get a key at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a>. Keys start with <strong>sk-</strong>. If the browser blocks DeepSeek, use OpenRouter.' },
   openrouter: { name: 'OpenRouter', label: 'OpenRouter · Llama 3.1', model: 'meta-llama/llama-3.1-8b-instruct:free', modelLabel: 'llama-3.1-8b:free', tier: 'free', prefix: 'sk-or-',
     hint: 'Get a <strong>free</strong> key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — free models available.' }
 };
-const PROVIDER_ORDER = ['gemini','grok','deepseek','anthropic','openai','groq','openrouter'];
+const PROVIDER_ORDER = ['gemini','jev','grok','deepseek','anthropic','openai','groq','openrouter'];
 
 const SYSTEM_PROMPT = "You are the exclusive scriptwriter for the End Times Faith YouTube channel. Your videos are raw, urgent, prophetic exposés that tear down modern \"Christian\" habits, traditions, routines, songs, symbols, activities, and teachings that look holy but actually replace, undermine, hide disobedience, or quietly contradict Scripture. Always call people back to simple New Testament obedience — and always anchor the conclusion in the Sabbath truth as revealed in Scripture and affirmed by Ellen G. White's The Great Controversy.\n\nOutput ONLY a clean .en.txt subtitle file — nothing else. Zero markdown. Zero preamble.\n\nStructure to follow EXACTLY:\n\n1. TITLE (first line): Auto-generate the perfect clickbait title for the subject given. Patterns:\n   - \"Every \"Christian\" [Subject] That [REPLACES Scripture / UNDERMINES Grace / HIDES Disobedience / QUIETLY Changed the Faith]\"\n   - \"Every [Subject] That Looks Holy But Hides…\"\n   - \"Why [Subject] Replaces Real Discipleship\"\n\n2. HOOK (lines 2–8): Short punchy lines, 5–12 words max. Use openers like:\n   \"We call ourselves Bible-believing… but most of us barely open it.\"\n   \"But what if I told you…\"\n   \"Every 'Christian' who still does this…\"\n   End hook with a shocking statement + \"…\"\n\n3. THESIS (4–6 lines): Boldly name the problem using CAPS: REPLACES, UNDERMINES, HIDES DISOBEDIENCE, QUIETLY, TRAINS YOU TO, FOOLS YOU INTO.\n\n4. MAIN BODY (9–15 numbered points). Each point must follow this exact micro-pattern:\n   Line 1: Vivid modern scene\n   Line 2–3: \"This trains you to [negative]. It trains you to [another negative].\"\n   Line 4: \"It quietly [harm]…\" or \"This fools you into thinking [false security]…\"\n   Line 5–6: \"But when you open Scripture…\"\n   Line 7: Direct Bible quote or reference + contrast with Jesus or the early church\n   Line 8: \"This is not obedience — this is [strong accusation].\"\n   Every single line: 5–12 words. One thought per line.\n\n5. CONCLUSION (last 10–13 lines):\n   Summarise the root issue (culture over Christ / performance over obedience / tradition over truth).\n   Then write EXACTLY these lines (do not alter them):\n   \"Drop the tradition.\"\n   \"Return to the Bible alone.\"\n   \"As Ellen G. White wrote in The Great Controversy, p. 605:\"\n   '\"The Sabbath will be the great test of loyalty,'\n   'for it is the point of truth especially controverted.\"'\n   \"Drop the tradition. Return to the Bible alone.\"\n   End with comment bait: \"Which one of these are you still doing?\" or \"What did this video expose in your life? Drop it in the comments.\"\n\nTone (non-negotiable):\n- Urgent, loving, uncompromising. Speak directly to \"you\".\n- Super-short lines for subtitle timing.\n- Lots of … and selective CAPS for punch.\n- \"This trains you to…\" and \"It quietly…\" are your signature phrases.\n- Zero filler. Zero softening. Zero markdown.\n\nNow generate the FULL subtitle script for the subject:";
 
@@ -634,12 +636,18 @@ const STUDY = {
 function looksLikeKey(id, key){
   if(id==='gemini') return key.startsWith('AIza') || key.startsWith('AQ.');
   if(id==='grok') return key.startsWith('xai-');
+  if(id==='jev'){
+    if(key.startsWith('sk-or-')) return true;
+    if(key.startsWith('sk-ant-') || key.startsWith('AIza') || key.startsWith('AQ.') || key.startsWith('xai-') || key.startsWith('gsk_')) return false;
+    return key.length >= 20;
+  }
   if(id==='openai' || id==='deepseek') return key.startsWith('sk-') && !key.startsWith('sk-ant-') && !key.startsWith('sk-or-');
   const p = PROVIDERS[id].prefix;
   return key.startsWith(p);
 }
 function keyPlaceholder(id){
   if(id==='gemini') return 'AIza… or AQ.…';
+  if(id==='jev') return 'sk-… or sk-or-…';
   return PROVIDERS[id].prefix+'…';
 }
 
@@ -824,6 +832,89 @@ function providerEndpoint(id){
   if(id==='deepseek') return ['https://api.deepseek.com/chat/completions', PROVIDERS.deepseek.model, null];
   return ['https://openrouter.ai/api/v1/chat/completions', PROVIDERS.openrouter.model, { 'HTTP-Referer':'https://leemcq.github.io/endtimesfaith/','X-Title':'End Times Faith' }];
 }
+function jevQuestions(){
+  return {
+    faithful: { type:'noul', instructions:'Is the requested Sabbath School study faithful to Scripture as the SDA Adult Bible Study Guide reads this week\'s text?' },
+    main_tension: { type:'choice', instructions:'What is the spine of this week\'s study?', criteria:{
+      spiritual_war:'Spiritual war, not a personality clash',
+      meekness:'The meekness of Christ versus apparent weakness',
+      false_apostles:'Deceitful workers and another gospel',
+      boasting:'Boasting only in the Lord',
+      self_exam:'Examine yourselves whether you are in the faith',
+      other:'Another tension in the text'
+    }},
+    class_risk: { type:'score', instructions:'How likely is this lesson to split a Sabbath School class in a fruitful way?', criteria:['unlikely','possible','likely','almost certain'] },
+    open_class: { type:'choice', instructions:'Which question should open class this Sabbath?', criteria:{
+      weapons:'What does it mean that our weapons are not of the flesh?',
+      meekness:'When is gentleness actually strength?',
+      another_jesus:'How would we recognise another Jesus in our church?',
+      measure:'Whose measuring stick are we using?',
+      examine:'How do we examine ourselves without despair?'
+    }},
+    pastoral_weight: { type:'score', instructions:'How heavy is the pastoral burden in this text for someone sitting in class this week?', criteria:['light','moderate','heavy','crushing'] }
+  };
+}
+function pct(n){
+  const x = Number(n);
+  if(!isFinite(x)) return '—';
+  return Math.round(x*100)+'%';
+}
+function formatJevAnswers(data){
+  const answers = (data&&data.answers) || {};
+  const model = (data&&data.model) || 'jev-latest';
+  let md = '# Jev reading of this week\'s study\n\n';
+  md += '*Jev ('+model+') is TypeSafe’s System One model. It ranks and judges; it does not write long prose like Gemini or Grok.*\n\n';
+  const keys = Object.keys(answers);
+  if(!keys.length) md += 'Jev returned no answers. Check the key and try again.\n';
+  keys.forEach(function(k){
+    const a = answers[k] || {};
+    const title = k.replace(/_/g,' ');
+    md += '## '+title.charAt(0).toUpperCase()+title.slice(1)+'\n\n';
+    if(a.type==='noul'){
+      md += '**Yes-probability:** '+pct(a.noul)+' · confidence '+pct(a.confidence)+'\n\n';
+    }else if(a.type==='choice'){
+      md += '**Choice:** '+String(a.choice||'—')+' · confidence '+pct(a.confidence)+'\n\n';
+      if(a.probabilities){
+        md += Object.keys(a.probabilities).map(function(p){ return '- '+p+': '+pct(a.probabilities[p]); }).join('\n')+'\n\n';
+      }
+    }else if(a.type==='score'){
+      const legend = a.legend && a.legend[String(a.score)];
+      md += '**Score:** '+String(a.score)+(legend?' — '+String(legend):'')+' · confidence '+pct(a.confidence)+'\n\n';
+    }else{
+      md += '```\n'+JSON.stringify(a,null,2)+'\n```\n\n';
+    }
+  });
+  return md;
+}
+async function callJev(key, prompt){
+  const viaOpenRouter = key.indexOf('sk-or-')===0;
+  const body = {
+    model: viaOpenRouter ? 'typesafe/jev-latest' : 'jev-latest',
+    state: String(prompt||'').slice(0, 24000),
+    questions: jevQuestions()
+  };
+  const url = viaOpenRouter ? 'https://openrouter.ai/api/alpha/decisions' : 'https://api.typesafe.ai/v1/systemone';
+  const headers = { 'Content-Type':'application/json', Authorization:'Bearer '+key };
+  if(viaOpenRouter){
+    headers['HTTP-Referer'] = 'https://leemcq.github.io/endtimesfaith/';
+    headers['X-Title'] = 'End Times Faith';
+  }
+  let res;
+  try{
+    res = await fetch(url, { method:'POST', headers: headers, body: JSON.stringify(body) });
+  }catch(e){
+    throw new Error('Jev blocked the browser request (CORS). Use an OpenRouter key on the Jev card, or switch to Gemini / Groq.');
+  }
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok){
+    const msg = (data.error&&(data.error.message||data.error)) || data.message || ('Jev error '+res.status);
+    throw new Error(typeof msg==='string'? msg : JSON.stringify(msg));
+  }
+  if(data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content){
+    return data.choices[0].message.content;
+  }
+  return formatJevAnswers(data);
+}
 async function complete(prompt, opts){
   opts = opts || {};
   const provider = opts.provider || activeProvider;
@@ -831,6 +922,7 @@ async function complete(prompt, opts){
   const maxTokens = opts.maxTokens || 4096;
   if(provider==='gemini') return callGemini(key, prompt, { system: opts.system, maxTokens: maxTokens, useSearch: !!opts.useSearch });
   if(provider==='anthropic') return callAnthropic(key, prompt, { system: opts.system || '', maxTokens: maxTokens });
+  if(provider==='jev') return callJev(key, prompt);
   const ep = providerEndpoint(provider);
   return callOpenAICompat(ep[0], key, ep[1], prompt, ep[2], { system: opts.system || '', maxTokens: maxTokens });
 }
