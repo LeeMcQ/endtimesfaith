@@ -563,7 +563,7 @@ const PROVIDERS = {
   grok: { name: 'Grok', label: 'Grok (xAI)', model: 'grok-4', modelLabel: 'grok-4', tier: 'paid', prefix: 'xai-',
     hint: 'Get a key at <a href="https://console.x.ai" target="_blank" rel="noopener">console.x.ai</a>. Keys start with <strong>xai-</strong>. This is xAI Grok, not Groq. Browser calls sometimes fail — if you see a CORS error, run Grok via OpenRouter instead.' },
   jev: { name: 'Jev', label: 'Jev (TypeSafe)', model: 'jev-latest', modelLabel: 'jev-latest', tier: 'paid', prefix: 'sk- / sk-or-',
-    hint: 'Jev is TypeSafe’s System One model. Get a key at <a href="https://console.typesafe.ai" target="_blank" rel="noopener">console.typesafe.ai</a> (waitlist) or use an <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter</a> key — OpenRouter serves <strong>typesafe/jev-latest</strong> with no waitlist. Jev ranks and judges the lesson; it does not write long prose like Gemini or Grok.' },
+    hint: 'Jev is TypeSafe’s System One model. Get a key at <a href="https://console.typesafe.ai" target="_blank" rel="noopener">console.typesafe.ai</a> or an <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter</a> key (<strong>sk-or-</strong>). TypeSafe keys are blocked in the phone browser — use OpenRouter for Jev, or keep Gemini/Grok connected so Generate still writes scripts.' },
   deepseek: { name: 'DeepSeek', label: 'DeepSeek', model: 'deepseek-chat', modelLabel: 'deepseek-chat', tier: 'paid', prefix: 'sk-',
     hint: 'Get a key at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a>. Keys start with <strong>sk-</strong>. If the browser blocks DeepSeek, use OpenRouter.' },
   openrouter: { name: 'OpenRouter', label: 'OpenRouter · Llama 3.1', model: 'meta-llama/llama-3.1-8b-instruct:free', modelLabel: 'llama-3.1-8b:free', tier: 'free', prefix: 'sk-or-',
@@ -886,34 +886,69 @@ function formatJevAnswers(data){
   });
   return md;
 }
-async function callJev(key, prompt){
-  const viaOpenRouter = key.indexOf('sk-or-')===0;
+async function callJev(key, prompt, opts){
+  opts = opts || {};
+  const viaOpenRouter = String(key||'').indexOf('sk-or-')===0;
   const body = {
     model: viaOpenRouter ? 'typesafe/jev-latest' : 'jev-latest',
     state: String(prompt||'').slice(0, 24000),
     questions: jevQuestions()
   };
-  const url = viaOpenRouter ? 'https://openrouter.ai/api/alpha/decisions' : 'https://api.typesafe.ai/v1/systemone';
-  const headers = { 'Content-Type':'application/json', Authorization:'Bearer '+key };
+  async function once(url, useKey, extra){
+    const headers = Object.assign({ 'Content-Type':'application/json', Authorization:'Bearer '+useKey }, extra||{});
+    const res = await fetch(url, { method:'POST', headers: headers, body: JSON.stringify(body) });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){
+      const msg = (data.error&&(data.error.message||data.error)) || data.message || ('Jev error '+res.status);
+      throw new Error(typeof msg==='string'? msg : JSON.stringify(msg));
+    }
+    if(data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content){
+      return data.choices[0].message.content;
+    }
+    if(data.answers) return formatJevAnswers(data);
+    throw new Error('Jev returned an empty response.');
+  }
+  const attempts = [];
   if(viaOpenRouter){
-    headers['HTTP-Referer'] = 'https://leemcq.github.io/endtimesfaith/';
-    headers['X-Title'] = 'End Times Faith';
+    attempts.push(function(){ return once('https://openrouter.ai/api/alpha/decisions', key, { 'HTTP-Referer':'https://leemcq.github.io/endtimesfaith/','X-Title':'End Times Faith' }); });
+  }else{
+    attempts.push(function(){ return once('https://api.typesafe.ai/v1/systemone', key); });
+    const orKey = storedKey('openrouter');
+    if(orKey && looksLikeKey('openrouter', orKey)){
+      attempts.push(function(){ return once('https://openrouter.ai/api/alpha/decisions', orKey, { 'HTTP-Referer':'https://leemcq.github.io/endtimesfaith/','X-Title':'End Times Faith' }); });
+    }
   }
-  let res;
-  try{
-    res = await fetch(url, { method:'POST', headers: headers, body: JSON.stringify(body) });
-  }catch(e){
-    throw new Error('Jev blocked the browser request (CORS). Use an OpenRouter key on the Jev card, or switch to Gemini / Groq.');
+  let lastErr = null;
+  for(let i=0;i<attempts.length;i++){
+    try{ return await attempts[i](); }
+    catch(e){ lastErr = e; }
   }
-  const data = await res.json().catch(()=>({}));
-  if(!res.ok){
-    const msg = (data.error&&(data.error.message||data.error)) || data.message || ('Jev error '+res.status);
-    throw new Error(typeof msg==='string'? msg : JSON.stringify(msg));
+  if(opts.allowWriter !== false){
+    const writer = firstWriter();
+    if(writer){
+      return complete(prompt, { provider: writer.provider, key: writer.key, system: opts.system || '', maxTokens: opts.maxTokens || 8192 });
+    }
   }
-  if(data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content){
-    return data.choices[0].message.content;
+  const cors = lastErr && /Failed to fetch|NetworkError|CORS|Load failed/i.test(String(lastErr.message||lastErr));
+  if(cors){
+    throw new Error('Jev cannot be called from this phone with a TypeSafe key. Paste an OpenRouter key (sk-or-…) on the Jev card, or connect Gemini / Groq and Generate again.');
   }
-  return formatJevAnswers(data);
+  throw lastErr || new Error('Jev request failed.');
+}
+function storedKey(id){
+  try{ return localStorage.getItem('etf_key_'+id) || ''; }catch(e){ return ''; }
+}
+function firstWriter(){
+  const order = ['gemini','grok','groq','deepseek','openai','anthropic','openrouter'];
+  for(let i=0;i<order.length;i++){
+    const id = order[i];
+    const k = storedKey(id);
+    if(k && looksLikeKey(id, k)) return { provider:id, key:k };
+  }
+  return null;
+}
+function isCorsErr(e){
+  return /Failed to fetch|NetworkError|CORS|Load failed|blocked the browser/i.test(String((e&&e.message)||e||''));
 }
 async function complete(prompt, opts){
   opts = opts || {};
@@ -922,12 +957,27 @@ async function complete(prompt, opts){
   const maxTokens = opts.maxTokens || 4096;
   if(provider==='gemini') return callGemini(key, prompt, { system: opts.system, maxTokens: maxTokens, useSearch: !!opts.useSearch });
   if(provider==='anthropic') return callAnthropic(key, prompt, { system: opts.system || '', maxTokens: maxTokens });
-  if(provider==='jev') return callJev(key, prompt);
+  if(provider==='jev') return callJev(key, prompt, opts);
   const ep = providerEndpoint(provider);
   return callOpenAICompat(ep[0], key, ep[1], prompt, ep[2], { system: opts.system || '', maxTokens: maxTokens });
 }
 async function callProvider(subject){
-  return complete(subject, { system: SYSTEM_PROMPT, maxTokens: 8192 });
+  if(activeProvider==='jev'){
+    const writer = firstWriter();
+    if(!writer) throw new Error('Jev ranks lessons; it cannot write subtitle scripts. Connect Gemini, Grok, Groq, or DeepSeek, then Generate.');
+    return complete(subject, { provider: writer.provider, key: writer.key, system: SYSTEM_PROMPT, maxTokens: 8192 });
+  }
+  try{
+    return await complete(subject, { system: SYSTEM_PROMPT, maxTokens: 8192 });
+  }catch(e){
+    if(isCorsErr(e)){
+      const writer = firstWriter();
+      if(writer && writer.provider!==activeProvider){
+        return complete(subject, { provider: writer.provider, key: writer.key, system: SYSTEM_PROMPT, maxTokens: 8192 });
+      }
+    }
+    throw e;
+  }
 }
 
 async function generate(){
