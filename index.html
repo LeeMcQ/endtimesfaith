@@ -153,6 +153,8 @@ body::before {
   padding: 14px 14px 12px;
 }
 .day-card.today { box-shadow: 0 0 0 1px var(--gold); }
+.sunday-notes { margin: 4px 0 14px; }
+.sunday-notes .s { font-size: var(--type); color: var(--text); line-height: 1.65; }
 .day-card .d { color: var(--gold); }
 .day-card .t { font-family: var(--font-display); font-weight: 700; font-size: 17px; display: block; margin: 4px 0 2px; }
 .day-card .ref { color: var(--text-faint); }
@@ -1029,6 +1031,10 @@ function renderLesson(){
     const on = d.day===today ? ' today' : '';
     return '<article class="day-card'+on+'"><span class="mono d">'+esc(d.day)+(d.day===today?' · today':'')+'</span><span class="t">'+esc(d.title)+'</span><span class="mono ref">'+esc(d.scripture)+'</span><div class="s">'+esc(d.summary)+'</div></article>';
   }).join('');
+  const sunday = (l.days||[]).find(function(d){ return d.day==='Sunday'; });
+  const sundayBlock = (today==='Sunday' && sunday)
+    ? '<article class="day-card today sunday-notes"><span class="mono d">Sunday notes · this week</span><span class="t">'+esc(sunday.title)+'</span><span class="mono ref">'+esc(sunday.scripture)+'</span><div class="s">'+esc(sunday.summary)+'</div></article>'
+    : '';
   const sources=(l.sources||[]).map(s=>'<a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.name)+'</a>').join('')
     + '<a href="'+esc(panelNotesUrl(l))+'" target="_blank" rel="noopener">3ABN Panel Notes</a>';
   const gKey=geminiKey();
@@ -1057,6 +1063,7 @@ function renderLesson(){
       '<div class="status-text" id="studyStatus"></div>'+
       '<div class="gen-error" id="studyError"></div>'+
     '</article>'+
+    sundayBlock+
     (days?'<h2 class="section-title">Daily study</h2><div class="week-strip" id="dayList">'+days+'</div>':'')+
     (sources?'<div class="source-row">'+sources+'</div>':'');
   bindVerses(document.getElementById('lessonCard'));
@@ -1385,7 +1392,7 @@ async function fetchLiveLesson(){
         day: DAY_NAMES[date.getDay()],
         title: (item.read&&item.read.title) || item.day.title,
         scripture: parseScripture(html),
-        summary: firstParagraphs(html, 2, memory.text)
+        summary: firstParagraphs(html, date.getDay()===0 ? 8 : 2, memory.text)
       };
     }),
     sources: [
