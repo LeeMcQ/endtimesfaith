@@ -1,4 +1,4 @@
-const CACHE = "etf-v16";
+const CACHE = "etf-v17";
 const PRECACHE = [
   "/endtimesfaith/",
   "/endtimesfaith/index.html",

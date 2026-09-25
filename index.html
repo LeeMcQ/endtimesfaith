@@ -583,22 +583,22 @@ button:not(:disabled), [role="button"]:not(:disabled) { cursor: pointer; }
 <script>
 
 const PROVIDERS = {
-  gemini: { name: 'Gemini', label: 'Gemini', model: 'gemini-3.6-flash', modelLabel: 'gemini-3.6-flash', tier: 'free', prefix: 'AIza / AQ.', recommended: true,
+  gemini: { name: 'Gemini', label: 'Gemini', model: 'gemini-3.8-flash', modelLabel: 'gemini-3.8-flash', tier: 'free', prefix: 'AIza / AQ.', recommended: true,
     hint: 'Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — no credit card needed. New keys start with <strong>AQ.</strong> Older keys start with <strong>AIza</strong>. Both work.' },
-  anthropic: { name: 'Claude', label: 'Claude (Anthropic)', model: 'claude-sonnet-4-20250514', modelLabel: 'claude-sonnet-4', tier: 'paid', prefix: 'sk-ant-',
+  anthropic: { name: 'Claude', label: 'Claude (Anthropic)', model: 'claude-sonnet-5', modelLabel: 'claude-sonnet-5', tier: 'paid', prefix: 'sk-ant-',
     hint: 'Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> — requires a small credit deposit.' },
-  openai: { name: 'ChatGPT', label: 'ChatGPT (OpenAI)', model: 'gpt-4o-mini', modelLabel: 'gpt-4o-mini', tier: 'paid', prefix: 'sk-',
+  openai: { name: 'ChatGPT', label: 'ChatGPT (OpenAI)', model: 'gpt-5-mini', modelLabel: 'gpt-5-mini', tier: 'paid', prefix: 'sk-', tokenField: 'max_completion_tokens',
     hint: 'Get a key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a> — pay-as-you-go pricing.' },
-  groq: { name: 'Groq', label: 'Groq · Llama 3.3', model: 'llama-3.3-70b-versatile', modelLabel: 'llama-3.3-70b', tier: 'free', prefix: 'gsk_',
-    hint: 'Get a <strong>free</strong> key at <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a> — no credit card needed. Not the same as Grok.' },
-  grok: { name: 'Grok', label: 'Grok (xAI)', model: 'grok-4', modelLabel: 'grok-4', tier: 'paid', prefix: 'xai-',
+  groq: { name: 'Groq', label: 'Groq · GPT-OSS 120B', model: 'openai/gpt-oss-120b', modelLabel: 'gpt-oss-120b', tier: 'free', prefix: 'gsk_', extraBody: { reasoning_effort: 'low' },
+    hint: 'Get a <strong>free</strong> key at <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a> — no credit card needed. Not the same as Grok. Llama 3.3 was retired; this uses GPT-OSS 120B.' },
+  grok: { name: 'Grok', label: 'Grok (xAI)', model: 'grok-4.7', modelLabel: 'grok-4.7', tier: 'paid', prefix: 'xai-',
     hint: 'Get a key at <a href="https://console.x.ai" target="_blank" rel="noopener">console.x.ai</a>. Keys start with <strong>xai-</strong>. This is xAI Grok, not Groq. Browser calls sometimes fail — if you see a CORS error, run Grok via OpenRouter instead.' },
   jev: { name: 'Jev', label: 'Jev (TypeSafe)', model: 'jev-latest', modelLabel: 'jev-latest', tier: 'paid', prefix: 'sk- / sk-or-',
     hint: 'Jev is TypeSafe’s System One model. Get a key at <a href="https://console.typesafe.ai" target="_blank" rel="noopener">console.typesafe.ai</a> or an <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter</a> key (<strong>sk-or-</strong>). TypeSafe keys are blocked in the phone browser — use OpenRouter for Jev, or keep Gemini/Grok connected so Generate still writes scripts.' },
-  deepseek: { name: 'DeepSeek', label: 'DeepSeek', model: 'deepseek-chat', modelLabel: 'deepseek-chat', tier: 'paid', prefix: 'sk-',
-    hint: 'Get a key at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a>. Keys start with <strong>sk-</strong>. If the browser blocks DeepSeek, use OpenRouter.' },
-  openrouter: { name: 'OpenRouter', label: 'OpenRouter · Llama 3.1', model: 'meta-llama/llama-3.1-8b-instruct:free', modelLabel: 'llama-3.1-8b:free', tier: 'free', prefix: 'sk-or-',
-    hint: 'Get a <strong>free</strong> key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — free models available.' }
+  deepseek: { name: 'DeepSeek', label: 'DeepSeek', model: 'deepseek-flash', modelLabel: 'deepseek-flash', tier: 'paid', prefix: 'sk-', extraBody: { thinking: { type: 'disabled' } },
+    hint: 'Get a key at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a>. Keys start with <strong>sk-</strong>. deepseek-chat was retired; this uses deepseek-flash.' },
+  openrouter: { name: 'OpenRouter', label: 'OpenRouter · GPT-OSS 120B', model: 'openai/gpt-oss-120b', modelLabel: 'gpt-oss-120b', tier: 'paid', prefix: 'sk-or-',
+    hint: 'Get a key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>. This route uses GPT-OSS 120B.' }
 };
 const PROVIDER_ORDER = ['gemini','jev','grok','deepseek','anthropic','openai','groq','openrouter'];
 
@@ -780,18 +780,14 @@ function switchProvider(){ setTab('key'); }
 
 async function callGemini(key, prompt, opts){
   opts = opts || {};
-  async function once(useSearch){
-    const body = {
-      contents: [{ role:'user', parts:[{ text: prompt }] }],
-      generationConfig: {
-        maxOutputTokens: opts.maxTokens || 8192,
-        temperature: 0.7,
-        thinkingConfig: { thinkingBudget: 0 }
-      }
-    };
+  const models = ['gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash'];
+  async function once(model, useSearch, withThinking){
+    const generationConfig = { maxOutputTokens: opts.maxTokens || 8192, temperature: 0.7 };
+    if(withThinking) generationConfig.thinkingConfig = { thinkingLevel: 'low' };
+    const body = { contents: [{ role:'user', parts:[{ text: prompt }] }], generationConfig: generationConfig };
     if(opts.system) body.systemInstruction = { parts:[{ text: opts.system }] };
     if(useSearch) body.tools = [{ googleSearch: {} }];
-    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+PROVIDERS.gemini.model+':generateContent', {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent', {
       method:'POST',
       headers:{ 'Content-Type':'application/json', 'x-goog-api-key': key },
       body: JSON.stringify(body)
@@ -806,24 +802,36 @@ async function callGemini(key, prompt, opts){
         err.raw = msg;
         throw err;
       }
-      if(/no longer available/i.test(msg)) throw new Error('This Gemini model is retired. Hard-refresh the page — the site now uses gemini-3.6-flash.');
       if(/API_KEY_INVALID|API key not valid|UNAUTHENTICATED|invalid authentication/i.test(msg+' '+status)) throw new Error('Gemini rejected this API key. Create a new key at aistudio.google.com/apikey.');
-      throw new Error(msg || 'Gemini error '+res.status);
+      const err = new Error(msg || 'Gemini error '+res.status);
+      err.status = res.status;
+      throw err;
     }
-    const text = ((data.candidates||[]).flatMap(c=>(c.content&&c.content.parts)||[]).map(p=>p.text||'').join('')).trim();
+    const text = ((data.candidates||[]).flatMap(function(c){ return (c.content&&c.content.parts)||[]; }).filter(function(p){ return p && !p.thought; }).map(function(p){ return p.text||''; }).join('')).trim();
     if(!text) throw new Error('Empty response from Gemini. Try again.');
     return text;
   }
-  try{
-    return await once(!!opts.useSearch);
-  }catch(e){
-    if(e.quota && opts.useSearch){
-      const text = await once(false);
-      return '*Live web search hit a free-tier Gemini quota, so this pass used the lesson text itself. Wait a minute and run Best questions again for live forum ranking.*\n\n'+text;
+  function retired(msg){ return /no longer available|not found|is not supported|unknown model|invalid model/i.test(String(msg||'')); }
+  let last = null;
+  for(let i=0;i<models.length;i++){
+    try{
+      return await once(models[i], !!opts.useSearch, true);
+    }catch(e){
+      last = e;
+      if(e.quota) break;
+      if(/thinking|Empty response/i.test(String(e.message||''))){
+        try{ return await once(models[i], !!opts.useSearch, false); }catch(e2){ last = e2; if(e2.quota || !retired(e2.message)) { if(!retired(e.message)) break; } }
+        continue;
+      }
+      if(!retired(e.message)) break;
     }
-    if(e.quota) throw new Error('Gemini free-tier quota is exhausted for the moment. Wait about a minute, then try again.');
-    throw e;
   }
+  if(last && last.quota && opts.useSearch){
+    const text = await once(models[0], false, true);
+    return '*Live web search hit a free-tier Gemini quota, so this pass used the lesson text itself. Wait a minute and run Best questions again for live forum ranking.*\n\n'+text;
+  }
+  if(last && last.quota) throw new Error('Gemini free-tier quota is exhausted for the moment. Wait about a minute, then try again.');
+  throw last || new Error('Gemini request failed.');
 }
 async function callAnthropic(key, userText, opts){
   opts = opts || {};
@@ -836,25 +844,39 @@ async function callAnthropic(key, userText, opts){
   if(!res.ok) throw new Error((data.error&&data.error.message)||'Anthropic error '+res.status);
   return (data.content||[]).map(b=>b.text||'').join('');
 }
+function messageText(msg){
+  if(!msg) return '';
+  if(typeof msg.content==='string' && msg.content.trim()) return msg.content;
+  if(Array.isArray(msg.content)){
+    const t = msg.content.map(function(p){ return (p && (p.text || '')) || ''; }).join('');
+    if(t.trim()) return t;
+  }
+  return msg.reasoning_content || '';
+}
 async function callOpenAICompat(url, key, model, userText, extra, opts){
   opts = opts || {};
   const system = opts.system === undefined ? SYSTEM_PROMPT : opts.system;
   const messages = [];
   if(system) messages.push({role:'system',content:system});
   messages.push({role:'user',content:userText});
+  const payload = { model: model, messages: messages };
+  payload[opts.tokenField || 'max_tokens'] = opts.maxTokens || 4096;
+  if(opts.extraBody) Object.assign(payload, opts.extraBody);
   let res;
   try{
     res=await fetch(url,{
       method:'POST',
       headers: Object.assign({ 'Content-Type':'application/json', Authorization:'Bearer '+key }, extra||{}),
-      body: JSON.stringify({ model, max_tokens: opts.maxTokens || 4096, messages })
+      body: JSON.stringify(payload)
     });
   }catch(e){
-    throw new Error((PROVIDERS[activeProvider]&&PROVIDERS[activeProvider].name||'This provider')+' blocked the browser request (CORS). Use Gemini or Groq, or call it through OpenRouter.');
+    throw new Error((PROVIDERS[opts.provider]&&PROVIDERS[opts.provider].name||'This provider')+' blocked the browser request (CORS). Try Gemini or Groq.');
   }
   const data=await res.json().catch(()=>({}));
   if(!res.ok) throw new Error((data.error&&data.error.message)||'Provider error '+res.status);
-  return (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+  const text = messageText(data.choices&&data.choices[0]&&data.choices[0].message);
+  if(!text) throw new Error('Empty response. Try again.');
+  return text;
 }
 function providerEndpoint(id){
   if(id==='openai') return ['https://api.openai.com/v1/chat/completions', PROVIDERS.openai.model, null];
@@ -990,7 +1012,8 @@ async function complete(prompt, opts){
   if(provider==='anthropic') return callAnthropic(key, prompt, { system: opts.system || '', maxTokens: maxTokens });
   if(provider==='jev') return callJev(key, prompt, opts);
   const ep = providerEndpoint(provider);
-  return callOpenAICompat(ep[0], key, ep[1], prompt, ep[2], { system: opts.system || '', maxTokens: maxTokens });
+  const spec = PROVIDERS[provider] || {};
+  return callOpenAICompat(ep[0], key, ep[1], prompt, ep[2], { system: opts.system || '', maxTokens: maxTokens, provider: provider, tokenField: spec.tokenField, extraBody: spec.extraBody });
 }
 async function callProvider(subject){
   if(activeProvider==='jev'){
@@ -1073,7 +1096,7 @@ function renderLesson(){
     + '<a href="'+esc(panelNotesUrl(l))+'" target="_blank" rel="noopener">3ABN Panel Notes</a>';
   const gKey=geminiKey();
   const ready = (apiKey && looksLikeKey(activeProvider, apiKey)) || gKey;
-  const runName = (apiKey && looksLikeKey(activeProvider, apiKey)) ? PROVIDERS[activeProvider].name+' · '+PROVIDERS[activeProvider].modelLabel : (gKey ? 'Gemini · 3.6 Flash' : '');
+  const runName = (apiKey && looksLikeKey(activeProvider, apiKey)) ? PROVIDERS[activeProvider].name+' · '+PROVIDERS[activeProvider].modelLabel : (gKey ? 'Gemini · 3.8 Flash' : '');
   const geminiField = ready
     ? '<p class="mono status-line">Ready on '+esc(runName)+'</p>'
     : '<div class="connect-hint"><p>Connect Gemini, Grok, DeepSeek, or another provider to run this week’s study buttons.</p><button class="btn-primary" type="button" onclick="setTab(\'key\')">Connect an AI</button></div>';
