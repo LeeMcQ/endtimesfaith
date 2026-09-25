@@ -256,7 +256,18 @@ input:focus { box-shadow: 0 0 0 1px var(--gold-dim), 0 0 0 4px var(--gold-soft);
 .md-output blockquote { border-left: 2px solid var(--gold); padding: 4px 0 4px 14px; color: var(--text-muted); font-style: italic; margin: 12px 0 18px; }
 .md-output hr { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
 .md-output code { font-family: var(--font-mono); font-size: 0.86em; color: var(--gold); }
-.md-output strong { color: var(--text); font-weight: 600; }
+.output-box.script-out { white-space: normal; background: transparent; box-shadow: none; padding: 4px 0 8px; }
+.script-read { display: grid; gap: 10px; }
+.script-title { font-family: var(--font-display); font-size: clamp(26px, 6.4vw, 36px); line-height: 1.15; margin: 2px 2px 6px; text-wrap: balance; }
+.script-kicker { color: var(--gold); margin: 8px 2px 0; }
+.script-beat, .script-point {
+  background: var(--surface); box-shadow: var(--shadow); border-radius: var(--radius-md);
+  padding: 16px 16px 14px;
+}
+.script-beat p, .script-point p { font-size: var(--type); line-height: 1.6; margin: 0 0 10px; text-wrap: pretty; }
+.script-beat p:last-child, .script-point p:last-child { margin: 0; }
+.script-point { display: grid; grid-template-columns: 2.4rem 1fr; gap: 8px 12px; align-items: start; }
+.script-num { color: var(--gold); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; padding-top: 5px; }
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 8px 0 22px; }
 .qa-card {
   display: grid; grid-template-columns: auto 1fr; gap: 10px 12px;
@@ -995,7 +1006,12 @@ async function generate(){
   try{
     const text=await callProvider(subject);
     if(!text) throw new Error('Empty response. Please try again.');
-    lastOutput=text; document.getElementById('outputBox').textContent=text; wrap.classList.add('visible'); status.textContent='';
+    lastOutput=text;
+    const box=document.getElementById('outputBox');
+    box.classList.add('script-out');
+    box.innerHTML=renderReadable(text);
+    bindVerses(box);
+    wrap.classList.add('visible'); status.textContent='';
     setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'start'}),80);
   }catch(e){
     err.textContent=e.message||'Something went wrong. Check your API key.'; err.classList.add('show'); status.textContent='';
@@ -1120,7 +1136,7 @@ async function runStudy(id){
     }
     lastStudy=text;
     document.getElementById('studyOutTitle').textContent=action.title+' · Lesson '+currentLesson.number+' · '+PROVIDERS[session.provider].name;
-    document.getElementById('studyOutBox').innerHTML=renderMarkdown(text);
+    document.getElementById('studyOutBox').innerHTML=renderReadable(text);
     bindVerses(document.getElementById('studyOutBox'));
     document.getElementById('studyOutputWrap').classList.add('visible');
     setTimeout(()=>document.getElementById('studyOutputWrap').scrollIntoView({behavior:'smooth',block:'start'}),80);
@@ -1139,6 +1155,63 @@ function downloadStudy(){
   a.click(); URL.revokeObjectURL(a.href);
 }
 function esc(s){ return String(s||'').replace(/[&<>"']/g, c => {if(c==='&') return '&amp;';if(c==='<') return '&lt;';if(c==='>') return '&gt;';if(c==='"') return '&quot;';return '&#39;';}); }
+function looksLikeMarkdown(text){
+  return /(^|\n)\s{0,3}#{1,3}\s+\S/.test(text) || /(^|\n)\s*\|.+\|/.test(text);
+}
+function isSubtitleScript(text){
+  const lines=String(text||'').split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+  if(lines.length<8) return false;
+  if(looksLikeMarkdown(text)) return false;
+  const short=lines.filter(function(l){ return l.length<90; }).length;
+  return short/lines.length>0.62;
+}
+function renderScript(text){
+  const lines=String(text||'').replace(/\r\n/g,'\n').split('\n');
+  let i=0;
+  while(i<lines.length && !lines[i].trim()) i++;
+  let title='';
+  if(i<lines.length){
+    const first=lines[i].trim();
+    if(first.length<160 && !/^\d{1,2}[.)]\s/.test(first)){ title=first.replace(/^["'“”]+|["'“”]+$/g,''); i++; }
+  }
+  const blocks=[];
+  let buf=[];
+  let point=null;
+  function flush(){
+    const kept=buf.map(function(s){ return s.trim(); }).filter(Boolean);
+    buf=[];
+    if(!kept.length){ point=null; return; }
+    if(point!=null){ blocks.push({type:'point', n:point, lines:kept}); point=null; }
+    else blocks.push({type:'beat', lines:kept});
+  }
+  for(; i<lines.length; i++){
+    const t=lines[i].trim();
+    if(!t){ flush(); continue; }
+    const num=t.match(/^(\d{1,2})[.)]\s*(.*)$/);
+    if(num){ flush(); point=num[1]; if(num[2]) buf.push(num[2]); continue; }
+    if(/^(HOOK|THESIS|MAIN BODY|CONCLUSION|TITLE)\b[:\-]?$/i.test(t)){
+      flush();
+      blocks.push({type:'label', text:t.replace(/[:\-]+$/,'').toLowerCase()});
+      continue;
+    }
+    buf.push(t);
+  }
+  flush();
+  let html='<article class="script-read">';
+  if(title) html+='<h2 class="script-title">'+esc(title)+'</h2>';
+  blocks.forEach(function(b){
+    if(b.type==='label') html+='<p class="mono script-kicker">'+esc(b.text)+'</p>';
+    else if(b.type==='point') html+='<section class="script-point"><span class="script-num">'+esc(String(b.n).padStart(2,'0'))+'</span><div>'+b.lines.map(function(l){ return '<p>'+esc(l)+'</p>'; }).join('')+'</div></section>';
+    else html+='<section class="script-beat">'+b.lines.map(function(l){ return '<p>'+esc(l)+'</p>'; }).join('')+'</section>';
+  });
+  return html+'</article>';
+}
+function renderReadable(text){
+  const src=String(text||'').trim();
+  if(!src) return '';
+  if(looksLikeMarkdown(src) || !isSubtitleScript(src)) return renderMarkdown(src);
+  return renderScript(src);
+}
 function renderMarkdown(src){
   let text=src.replace(/\r\n/g,'\n');
   text=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
