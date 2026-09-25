@@ -267,7 +267,25 @@ input:focus { box-shadow: 0 0 0 1px var(--gold-dim), 0 0 0 4px var(--gold-soft);
 .script-beat p, .script-point p { font-size: var(--type); line-height: 1.6; margin: 0 0 10px; text-wrap: pretty; }
 .script-beat p:last-child, .script-point p:last-child { margin: 0; }
 .script-point { display: grid; grid-template-columns: 2.4rem 1fr; gap: 8px 12px; align-items: start; }
-.script-num { color: var(--gold); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; padding-top: 5px; }
+.q-head, .scene-kicker, .fq-kicker, .day-kicker { font-family: var(--font-display); font-size: 1.35em; line-height: 1.25; margin: 18px 0 8px; text-wrap: balance; }
+.q-head:first-child, .day-kicker:first-child { margin-top: 0; }
+.q-card, .scene, .fq-card, .day-card-out {
+  background: var(--surface); box-shadow: var(--shadow); border-radius: var(--radius-md); padding: 16px; margin: 0 0 12px;
+}
+.q-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.q-rank, .q-label, .fq-n, .day-row dt { font-family: var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-size: 11px; }
+.q-source { font-family: var(--font-mono); font-size: 12px; color: var(--text-faint); text-align: right; }
+.q-ask { font-family: var(--font-display); font-size: 1.2em; line-height: 1.35; margin: 10px 0 4px; text-wrap: balance; }
+.q-body, .scene p, .fq-q, .day-row dd { font-size: var(--type); line-height: 1.65; margin: 0 0 8px; text-wrap: pretty; }
+.q-label { display: block; margin-top: 12px; }
+.scene-aside { box-shadow: inset 3px 0 0 var(--gold), var(--shadow); }
+.scene-word { color: var(--gold); font-weight: 600; }
+.fq-open { font-style: italic; color: var(--text-muted); margin: 0; }
+.day-row { display: grid; gap: 4px; padding: 10px 0; border-top: 1px solid var(--border); }
+.day-row:first-of-type { border-top: 0; padding-top: 0; }
+.day-row dd { margin: 0; }
+.day-row.miss { background: var(--surface2); border-radius: 12px; padding: 12px; margin-top: 8px; border-top: 0; }
+.study-note { color: var(--text-muted); margin: 0 0 12px; }
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 8px 0 22px; }
 .qa-card {
   display: grid; grid-template-columns: auto 1fr; gap: 10px 12px;
@@ -618,13 +636,13 @@ function lessonContext(l){
   return 'THIS WEEK\'S SDA ADULT SABBATH SCHOOL LESSON\nQuarter: '+QUARTER.year+' Q'+QUARTER.quarter+' — '+QUARTER.title+'\nLesson '+l.number+': '+l.title+'\nDates: '+formatRange(l)+'\nMemory Text: “'+l.memoryText+'” ('+l.memoryRef+', '+l.memoryVersion+')\nRead for this week\'s study: '+(l.readForStudy||'See the Adult Bible Study Guide')+'\n\nOverview:\n'+l.overview+'\n\nDaily studies:\n'+(days||'(See the quarterly.)')+'\n\nOfficial and popular study sources this week:\n'+(l.sources||[]).map(s=>'- '+s.name+': '+s.url).join('\n')+'\nAlso commonly covering this lesson: Hope Sabbath School (Derek Morris), Sabbath School with Mark Finley (HopeLives365), 3ABN Sabbath School Panel, Sabbath School Net (ssnet.org), Adult Bible Study Guide, It Is Written Sabbath School.';
 }
 function buildQuestionsPrompt(l){
-  return 'You are an expert in SDA weekly lesson study. Your assignment is to understand the lesson study deeply and then look online on the different forums, YouTube channels and lesson study websites and channels covering the lesson studies and find and rank the best questions surrounding the lesson study, and then the best alternative thought-provoking inputs that people have given surrounding the lesson study for the past week. Provide the input and question in its raw form and what people replied to it and why it is so deep. Present it in table form.\n\n'+lessonContext(l)+'\n\nInstructions:\n- Search current coverage of THIS exact lesson (Lesson '+l.number+', Q3 2026, "'+l.title+'") on Sabbath School Net, Hope Sabbath School, Mark Finley / HopeLives365, 3ABN Sabbath School Panel, It Is Written, Adult Bible Study Guide comment threads, Reddit, Facebook Sabbath School groups, and YouTube comments.\n- Rank the best discussion questions (from official quarterlies AND from teachers/viewers). Then rank the best alternative thought-provoking inputs.\n- Present TWO markdown tables:\n\nTable 1 — Best questions\nColumns: Rank | Raw question (verbatim if possible) | Source (channel / site / teacher) | What people replied | Why it is so deep\n\nTable 2 — Best alternative thought-provoking inputs\nColumns: Rank | Raw input (verbatim) | Source | What people replied | Why it is so deep\n\n- Prefer actual found questions over invented ones. If a source cannot be verified, say so in the Source cell rather than fabricating a URL.\n- After the tables, add a short "How to use these in class" paragraph.\n- Do not moralize. Let the questions do the work.';
+  return 'You are an expert in SDA weekly lesson study. Your assignment is to understand the lesson study deeply and then look online on the different forums, YouTube channels and lesson study websites and channels covering the lesson studies and find and rank the best questions surrounding the lesson study, and then the best alternative thought-provoking inputs that people have given surrounding the lesson study for the past week. Provide the input and question in its raw form and what people replied to it and why it is so deep. Present it in table form.\n\n'+lessonContext(l)+'\n\nInstructions:\n- Search current coverage of THIS exact lesson (Lesson '+l.number+', Q3 2026, "'+l.title+'") on Sabbath School Net, Hope Sabbath School, Mark Finley / HopeLives365, 3ABN Sabbath School Panel, It Is Written, Adult Bible Study Guide comment threads, Reddit, Facebook Sabbath School groups, and YouTube comments.\n- Rank the best discussion questions (from official quarterlies AND from teachers/viewers). Then rank the best alternative thought-provoking inputs.\n- Present TWO markdown tables:\n\nTable 1 — Best questions\nColumns: Rank | Raw question (verbatim if possible) | Source (channel / site / teacher) | What people replied | Why it is so deep\n\nTable 2 — Best alternative thought-provoking inputs\nColumns: Rank | Raw input (verbatim) | Source | What people replied | Why it is so deep\n\n- Prefer actual found questions over invented ones. If a source cannot be verified, say so in the Source cell rather than fabricating a URL.\n- After the tables, add a short "How to use these in class" paragraph.\n- Do not moralize. Let the questions do the work.\n- Keep both tables. Put this heading on its own line before the first table: ## Best questions. Put this heading on its own line before the second table: ## Alternative inputs. Do not change what the tables contain.';
 }
 function buildScriptPrompt(l){
-  return 'System Role: Act as an expert biblical scholar, ancient historian, and master storyteller. Your task is to write a YouTube video script that explains difficult, overlooked, or seemingly contradictory biblical passages.\n\nTone & Voice: The tone must be calm, profoundly intellectual yet highly accessible, empathetic, and pastoral. Avoid all common Christian clichés, religious jargon, or overly emotional preaching. Speak with the quiet authority of a historian who has discovered a life-changing secret in the text. Ground all theology in physical, tactile realities (bread, ashes, wood, dirt, water).\n\nScript Structure:\n\nThe Cinematic Hook: Start in media res with a highly sensory, cinematic description of the geographical or historical setting (e.g., the smell of woodsmoke in ancient Jerusalem). Introduce the specific tension, difficult verse, or "impossible command" without immediately giving away the answer. Never use generic YouTube intros like "Welcome back to the channel."\n\nThe Linguistic & Cultural Deep Dive: Identify 1 to 3 specific Hebrew or Greek words at the core of the passage. Explain their historical usage and cultural context to the original ancient Near Eastern or first-century Jewish audience. Crucial rule: Favour actual textual usage over speculative etymology (dead roots). Reframe the tension using this new understanding.\n\nThe Mid-Roll Integration: Insert a very brief, natural transition around the halfway mark. Use this exact phrasing style: "Quick word before we continue. If this kind of study is useful to you, subscribing genuinely helps... becoming a channel member directly supports the research."\n\nThe Old/New Testament Bridge: Connect the concept to the broader biblical narrative. If the text is Old Testament, show how the New Testament resolves it. If it\'s New Testament, root it deeply in Old Testament history and geography.\n\nThe Pastoral Application: Pivot directly to the modern viewer\'s life. Address an unspoken burden, exhaustion, or pain (e.g., feeling like a failure in prayer, sitting by a sick child\'s bed). Use the theological insight to offer genuine relief and grace, not a new set of rules.\n\nThe Cinematic Conclusion: Circle back to the opening imagery. Deliver a final, profound, paradigm-shifting thought that leaves the listener in awe of the text. End with a brief, gentle sign-off.\n\nTask: Write a script using this framework for the following biblical topic:\n\n'+l.title+' — SDA Adult Sabbath School Lesson '+l.number+', Q3 2026 ('+l.start+' to '+l.end+').\nMemory text: “'+l.memoryText+'” ('+l.memoryRef+').\nPrimary scriptures: '+(l.readForStudy||l.memoryRef)+'.\n\n'+lessonContext(l)+'\n\nChoose the single most charged tension in this week\'s study as the spine of the script. Write a complete spoken script, 1,600–2,200 words, with scene headings matching the structure above.';
+  return 'System Role: Act as an expert biblical scholar, ancient historian, and master storyteller. Your task is to write a YouTube video script that explains difficult, overlooked, or seemingly contradictory biblical passages.\n\nTone & Voice: The tone must be calm, profoundly intellectual yet highly accessible, empathetic, and pastoral. Avoid all common Christian clichés, religious jargon, or overly emotional preaching. Speak with the quiet authority of a historian who has discovered a life-changing secret in the text. Ground all theology in physical, tactile realities (bread, ashes, wood, dirt, water).\n\nScript Structure:\n\nThe Cinematic Hook: Start in media res with a highly sensory, cinematic description of the geographical or historical setting (e.g., the smell of woodsmoke in ancient Jerusalem). Introduce the specific tension, difficult verse, or "impossible command" without immediately giving away the answer. Never use generic YouTube intros like "Welcome back to the channel."\n\nThe Linguistic & Cultural Deep Dive: Identify 1 to 3 specific Hebrew or Greek words at the core of the passage. Explain their historical usage and cultural context to the original ancient Near Eastern or first-century Jewish audience. Crucial rule: Favour actual textual usage over speculative etymology (dead roots). Reframe the tension using this new understanding.\n\nThe Mid-Roll Integration: Insert a very brief, natural transition around the halfway mark. Use this exact phrasing style: "Quick word before we continue. If this kind of study is useful to you, subscribing genuinely helps... becoming a channel member directly supports the research."\n\nThe Old/New Testament Bridge: Connect the concept to the broader biblical narrative. If the text is Old Testament, show how the New Testament resolves it. If it\'s New Testament, root it deeply in Old Testament history and geography.\n\nThe Pastoral Application: Pivot directly to the modern viewer\'s life. Address an unspoken burden, exhaustion, or pain (e.g., feeling like a failure in prayer, sitting by a sick child\'s bed). Use the theological insight to offer genuine relief and grace, not a new set of rules.\n\nThe Cinematic Conclusion: Circle back to the opening imagery. Deliver a final, profound, paradigm-shifting thought that leaves the listener in awe of the text. End with a brief, gentle sign-off.\n\nTask: Write a script using this framework for the following biblical topic:\n\n'+l.title+' — SDA Adult Sabbath School Lesson '+l.number+', Q3 2026 ('+l.start+' to '+l.end+').\nMemory text: “'+l.memoryText+'” ('+l.memoryRef+').\nPrimary scriptures: '+(l.readForStudy||l.memoryRef)+'.\n\n'+lessonContext(l)+'\n\nChoose the single most charged tension in this week\'s study as the spine of the script. Write a complete spoken script, 1,600–2,200 words. Put each of these headings on its own line, in this order, and write the spoken words under them: The Cinematic Hook, The Linguistic & Cultural Deep Dive, The Mid-Roll, The Old/New Testament Bridge, The Pastoral Application, The Cinematic Conclusion.';
 }
 function buildFollowupPrompt(l){
-  return 'You are a veteran SDA Sabbath School teacher, biblical scholar, and small-group facilitator. Generate follow-up questions for this week\'s Adult Sabbath School lesson.\n\n'+lessonContext(l)+'\n\nProduce three sections. Do not answer the questions. For each question, add one italic line: what a rich conversation might open — not the answer.\n\n1. CLASS DISCUSSION (8–10 questions)\nRanked from most essential to most stretching. These should work out loud in a mixed-age Sabbath School class without shaming anyone. Include at least two that force people to handle a real verse, not a slogan.\n\n2. PERSONAL APPLICATION (6 questions)\nPress the lesson into Monday morning. Address unspoken burdens that fit THIS text: spiritual-warfare fatigue, fear of being deceived, church conflict, mistaking gentleness for cowardice, mistaking boldness for flesh, the exhaustion of defending yourself, sitting with an unrepentant family member.\n\n3. GOING DEEPER (5 questions)\nThe questions the quarterly almost asks. Linguistic, historical, or pastoral tensions. One of them should be slightly dangerous — a question that could split the class in a fruitful way.\n\nClose with 3 "leave-the-room" questions a teacher can read while people pack hymnals.\n\nPresent in clean markdown. No preamble, no sign-off.';
+  return 'You are a veteran SDA Sabbath School teacher, biblical scholar, and small-group facilitator. Generate follow-up questions for this week\'s Adult Sabbath School lesson.\n\n'+lessonContext(l)+'\n\nProduce three sections. Do not answer the questions. For each question, add one italic line: what a rich conversation might open — not the answer.\n\n1. CLASS DISCUSSION (8–10 questions)\nRanked from most essential to most stretching. These should work out loud in a mixed-age Sabbath School class without shaming anyone. Include at least two that force people to handle a real verse, not a slogan.\n\n2. PERSONAL APPLICATION (6 questions)\nPress the lesson into Monday morning. Address unspoken burdens that fit THIS text: spiritual-warfare fatigue, fear of being deceived, church conflict, mistaking gentleness for cowardice, mistaking boldness for flesh, the exhaustion of defending yourself, sitting with an unrepentant family member.\n\n3. GOING DEEPER (5 questions)\nThe questions the quarterly almost asks. Linguistic, historical, or pastoral tensions. One of them should be slightly dangerous — a question that could split the class in a fruitful way.\n\nClose with 3 "leave-the-room" questions a teacher can read while people pack hymnals.\n\nPresent in clean markdown. No preamble, no sign-off. Use these headings exactly, each on its own line: ## Class discussion, ## Personal application, ## Going deeper, ## Leave the room. Number every question. Put one italic line directly under each question for what the conversation might open.';
 }
 function panelNotesUrl(l){
   const y = QUARTER.year;
@@ -1136,7 +1154,8 @@ async function runStudy(id){
     }
     lastStudy=text;
     document.getElementById('studyOutTitle').textContent=action.title+' · Lesson '+currentLesson.number+' · '+PROVIDERS[session.provider].name;
-    document.getElementById('studyOutBox').innerHTML=renderReadable(text);
+    document.getElementById('studyOutBox').className='output-box md-output study-out study-'+id;
+    document.getElementById('studyOutBox').innerHTML=renderStudy(id, text);
     bindVerses(document.getElementById('studyOutBox'));
     document.getElementById('studyOutputWrap').classList.add('visible');
     setTimeout(()=>document.getElementById('studyOutputWrap').scrollIntoView({behavior:'smooth',block:'start'}),80);
@@ -1205,6 +1224,194 @@ function renderScript(text){
     else html+='<section class="script-beat">'+b.lines.map(function(l){ return '<p>'+esc(l)+'</p>'; }).join('')+'</section>';
   });
   return html+'</article>';
+}
+function parseMdTable(rows){
+  const parsed=rows.map(function(r){ return r.trim(); }).filter(function(r){ return r && !/^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?$/.test(r); }).map(function(r){
+    return r.replace(/^\|/,'').replace(/\|$/,'').split('|').map(function(c){ return c.trim(); });
+  });
+  if(parsed.length<2) return null;
+  return { headers: parsed[0], rows: parsed.slice(1) };
+}
+function colIndex(headers, words){
+  const hs=headers.map(function(h){ return String(h||'').toLowerCase(); });
+  for(let i=0;i<hs.length;i++){
+    if(words.some(function(w){ return hs[i].indexOf(w)!==-1; })) return i;
+  }
+  return -1;
+}
+function cell(row, i){ return i>=0 && row[i] ? row[i] : ''; }
+function renderQuestions(text){
+  const lines=String(text||'').replace(/\r\n/g,'\n').split('\n');
+  let html='', heading='', buf=[], i=0, cards=0;
+  function flushText(){
+    const t=buf.join('\n').trim(); buf=[];
+    if(!t) return;
+    html+=renderMarkdown(t);
+  }
+  while(i<lines.length){
+    const line=lines[i];
+    if(/^#{1,3}\s+/.test(line)){ flushText(); heading=line.replace(/^#{1,3}\s+/,'').trim(); i++; continue; }
+    if(/^\s*\|/.test(line)){
+      flushText();
+      const rows=[];
+      while(i<lines.length && /^\s*\|/.test(lines[i])){ rows.push(lines[i]); i++; }
+      const table=parseMdTable(rows);
+      if(!table){ html+=renderMarkdown(rows.join('\n')); continue; }
+      const ask=colIndex(table.headers, ['question','input','raw']);
+      const rank=colIndex(table.headers, ['rank']);
+      const source=colIndex(table.headers, ['source','channel','teacher']);
+      const reply=colIndex(table.headers, ['repl','said','answer']);
+      const why=colIndex(table.headers, ['why','deep']);
+      html+='<h3 class="q-head">'+esc(heading||'Questions')+'</h3><div class="q-list">';
+      table.rows.forEach(function(row, n){
+        const q=cell(row, ask>=0?ask:1) || row.filter(Boolean).join(' ');
+        if(!q) return;
+        cards++;
+        html+='<article class="q-card"><div class="q-top"><span class="q-rank">'+esc(cell(row, rank)||String(n+1))+'</span><span class="q-source">'+esc(cell(row, source))+'</span></div><p class="q-ask">'+inline(q)+'</p>';
+        if(cell(row, reply)) html+='<span class="q-label">What people replied</span><p class="q-body">'+inline(cell(row, reply))+'</p>';
+        if(cell(row, why)) html+='<span class="q-label">Why it is deep</span><p class="q-body q-why">'+inline(cell(row, why))+'</p>';
+        html+='</article>';
+      });
+      html+='</div>';
+      heading='';
+      continue;
+    }
+    buf.push(line); i++;
+  }
+  flushText();
+  return cards ? html : renderMarkdown(text);
+}
+function renderVideoScript(text){
+  const scenes=[
+    [/cinematic hook/i,'hook','The cinematic hook'],
+    [/linguistic|cultural deep dive/i,'dive','The deep dive'],
+    [/mid-?roll/i,'aside','Mid-roll'],
+    [/old\s*\/\s*new|testament bridge/i,'bridge','Old and New Testament'],
+    [/pastoral/i,'pastoral','Pastoral application'],
+    [/cinematic conclusion/i,'close','The close']
+  ];
+  const lines=String(text||'').replace(/\r\n/g,'\n').split('\n');
+  const parts=[];
+  let current=null;
+  let buf=[];
+  function push(){
+    const body=buf.join('\n').trim(); buf=[];
+    if(current||body) parts.push({ scene: current, body: body });
+  }
+  lines.forEach(function(line){
+    const bare=line.replace(/^#{1,3}\s+/,'').trim();
+    const hit=scenes.find(function(s){ return s[0].test(bare) && bare.length<80; });
+    if(hit){ push(); current={ kind: hit[1], label: hit[2] }; return; }
+    buf.push(line);
+  });
+  push();
+  const found=parts.filter(function(p){ return p.scene; }).length;
+  if(found<2) return renderMarkdown(text);
+  return parts.map(function(p){
+    if(!p.body && !p.scene) return '';
+    if(!p.scene) return '<div class="study-note">'+renderMarkdown(p.body)+'</div>';
+    const paras=p.body.split(/\n{2,}/).map(function(b){ return b.trim(); }).filter(Boolean);
+    return '<section class="scene scene-'+p.scene.kind+'"><p class="mono script-kicker">'+esc(p.scene.label)+'</p>'+paras.map(function(b){ return '<p>'+inline(b.replace(/\n/g,' '))+'</p>'; }).join('')+'</section>';
+  }).join('');
+}
+function renderFollowups(text){
+  const heads=[
+    [/class discussion/i,'Class discussion'],
+    [/personal application/i,'Personal application'],
+    [/going deeper/i,'Going deeper'],
+    [/leave[- ]the[- ]room/i,'Leave the room']
+  ];
+  const lines=String(text||'').replace(/\r\n/g,'\n').split('\n');
+  const sections=[];
+  let current=null;
+  let buf=[];
+  function push(){
+    if(current) sections.push({ title: current, body: buf.join('\n').trim() });
+    buf=[];
+  }
+  lines.forEach(function(line){
+    const bare=line.replace(/^#{1,3}\s+/,'').replace(/^\d+\.\s+/,'').trim();
+    const hit=heads.find(function(h){ return h[0].test(bare) && bare.length<60; });
+    if(hit){ push(); current=hit[1]; return; }
+    buf.push(line);
+  });
+  push();
+  if(sections.length<2) return renderMarkdown(text);
+  return sections.map(function(sec){
+    const items=[];
+    let q=null, open='';
+    function flushQ(){
+      if(q) items.push({ q:q, open:open });
+      q=null; open='';
+    }
+    sec.body.split('\n').forEach(function(line){
+      const t=line.trim();
+      if(!t) return;
+      const num=t.match(/^(?:\*\*)?(\d+)[.)]\s+(.+)$/);
+      const italic=t.match(/^\*(.+)\*$/) || t.match(/^_(.+)_$/);
+      if(num){ flushQ(); q=num[2].replace(/\*\*/g,''); return; }
+      if(italic && q){ open=italic[1]; return; }
+      if(!q) q=t.replace(/^[-*]\s+/,'').replace(/\*\*/g,'');
+      else if(!open && (t.charAt(0)==='*' || /^opens?:/i.test(t))) open=t.replace(/^\*+|\*+$/g,'').replace(/^opens?:\s*/i,'');
+      else q+=' '+t;
+    });
+    flushQ();
+    if(!items.length) return '<h3 class="fq-kicker">'+esc(sec.title)+'</h3>'+renderMarkdown(sec.body);
+    return '<h3 class="fq-kicker">'+esc(sec.title)+'</h3>'+items.map(function(item, n){
+      return '<article class="fq-card"><span class="fq-n">'+String(n+1).padStart(2,'0')+'</span><p class="fq-q">'+inline(item.q)+'</p>'+(item.open?'<p class="fq-open">'+inline(item.open)+'</p>':'')+'</article>';
+    }).join('');
+  }).join('');
+}
+function renderPanel(text){
+  const days=['Sabbath','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const lines=String(text||'').replace(/\r\n/g,'\n').split('\n');
+  const chunks=[];
+  let intro=[];
+  let current=null;
+  let buf=[];
+  function push(){
+    if(current) chunks.push({ day: current, body: buf.join('\n') });
+    buf=[];
+  }
+  lines.forEach(function(line){
+    const bare=line.replace(/^#{1,3}\s+/,'').trim();
+    const day=days.find(function(d){ return bare.toLowerCase()===d.toLowerCase(); });
+    if(day){ if(!current) intro=buf.slice(); push(); current=day; return; }
+    buf.push(line);
+  });
+  push();
+  if(chunks.length<3) return renderMarkdown(text);
+  let html=intro.join('\n').trim()? renderMarkdown(intro.join('\n')) : '';
+  chunks.forEach(function(ch){
+    const rows=[];
+    const raw=ch.body.split('\n');
+    let i=0;
+    while(i<raw.length){
+      if(/^\s*\|/.test(raw[i])){
+        const block=[];
+        while(i<raw.length && /^\s*\|/.test(raw[i])){ block.push(raw[i]); i++; }
+        const table=parseMdTable(block);
+        if(table) table.rows.forEach(function(r){ if(r[0]) rows.push({ label:r[0], value:(r[1]||r.slice(1).join(' | ')) }); });
+        continue;
+      }
+      i++;
+    }
+    html+='<article class="day-card-out"><h3 class="day-kicker">'+esc(ch.day)+'</h3>';
+    if(!rows.length){ html+=renderMarkdown(ch.body)+'</article>'; return; }
+    rows.forEach(function(r){
+      const miss=/not discussing|unique|skip/i.test(r.label);
+      html+='<div class="day-row'+(miss?' miss':'')+'"><dt>'+esc(r.label)+'</dt><dd>'+inline(r.value)+'</dd></div>';
+    });
+    html+='</article>';
+  });
+  return html;
+}
+function renderStudy(id, text){
+  if(id==='questions') return renderQuestions(text);
+  if(id==='script') return renderVideoScript(text);
+  if(id==='followup') return renderFollowups(text);
+  if(id==='panel') return renderPanel(text);
+  return renderReadable(text);
 }
 function renderReadable(text){
   const src=String(text||'').trim();
