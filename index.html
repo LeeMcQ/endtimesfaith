@@ -618,7 +618,7 @@ let currentLesson = null;
 
 function parseISO(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); }
 function getLesson(){
-  const now=new Date(); const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const today=studyDate();
   const match=LESSONS.find(l=> today>=parseISO(l.start) && today<=parseISO(l.end));
   if(match) return match;
   if(today<parseISO(LESSONS[0].start)) return LESSONS[0];
@@ -1102,7 +1102,7 @@ function renderLesson(){
     : '<div class="connect-hint"><p>Connect Gemini, Grok, DeepSeek, or another provider to run this week’s study buttons.</p><button class="btn-primary" type="button" onclick="setTab(\'key\')">Connect an AI</button></div>';
   document.getElementById('lessonCard').innerHTML =
     '<article class="hero">'+
-      '<p class="mono kicker">This week'+(liveQuarter.live?' · live':'')+' · Q'+QUARTER.quarter+' '+QUARTER.year+' · Lesson '+l.number+'</p>'+
+      '<p class="mono kicker">This week'+(liveQuarter.live?' · live':'')+(startOfDay().getDay()===6?' · new lesson Sunday':'')+' · Q'+QUARTER.quarter+' '+QUARTER.year+' · Lesson '+l.number+'</p>'+
       '<p class="mono" style="color:var(--text-muted)">'+esc(QUARTER.title)+' · '+formatRange(l)+'</p>'+
       '<h1 class="lesson-title">'+esc(l.title)+'</h1>'+
       '<blockquote class="memory"><p>“'+esc(l.memoryText)+'”</p><cite class="mono">'+esc(l.memoryRef)+' · '+esc(l.memoryVersion)+'</cite></blockquote>'+
@@ -1584,12 +1584,19 @@ document.getElementById('subject').addEventListener('keydown', e=>{ if(e.key==='
 document.getElementById('apiKeyInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
 const LESSON_API = 'https://sabbath-school.adventech.io/api/v1/en/quarterlies';
-const LIVE_CACHE = 'etf_live_lesson_v2';
+const LIVE_CACHE = 'etf_live_lesson_v3';
 let liveQuarter = { year: QUARTER.year, quarter: QUARTER.quarter, title: QUARTER.title, id: '', human: '', live: false };
 
 function parseDMY(s){ const [d,m,y]=s.split('/').map(Number); return new Date(y,m-1,d); }
 function toISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function startOfDay(d){ d=d||new Date(); return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+function studyDate(){
+  const today = startOfDay();
+  if(today.getDay()!==6) return today;
+  const prev = new Date(today);
+  prev.setDate(prev.getDate()-1);
+  return startOfDay(prev);
+}
 function inRange(today,start,end){ return today>=parseDMY(start) && today<=parseDMY(end); }
 function stripHtml(html){
   return String(html||'')
@@ -1649,7 +1656,7 @@ function readLiveCache(){
     const cached = JSON.parse(localStorage.getItem(LIVE_CACHE)||'null');
     if(!cached || !cached.lesson || !cached.fetchedAt) return null;
     if(Date.now()-cached.fetchedAt > 6*3600*1000) return null;
-    const today = startOfDay();
+    const today = studyDate();
     if(today < parseISO(cached.lesson.start) || today > parseISO(cached.lesson.end)) return null;
     return cached;
   }catch(e){ return null; }
@@ -1658,7 +1665,7 @@ async function fetchLiveLesson(){
   const cached = readLiveCache();
   if(cached && cached.live) return cached;
   const list = await fetchJson(LESSON_API+'/index.json');
-  const today = startOfDay();
+  const today = studyDate();
   const adults = list.filter(q => /^\d{4}-\d{2}$/.test(q.id) && (!q.quarterly_group || q.quarterly_group.name==='Standard Adult'));
   let quarterly = adults.find(q => inRange(today, q.start_date, q.end_date))
     || adults.slice().sort((a,b)=>+parseDMY(b.start_date)-+parseDMY(a.start_date)).find(q => today>=parseDMY(q.start_date))
