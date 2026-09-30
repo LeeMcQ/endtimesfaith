@@ -136,6 +136,8 @@ body::before {
 .memory p { font-size: calc(var(--type) + 3px); font-style: italic; line-height: 1.45; text-wrap: pretty; }
 .memory cite { display: block; margin-top: 10px; font-style: normal; color: var(--gold); }
 .overview { margin-top: 16px; color: var(--text-muted); font-size: var(--type); line-height: 1.65; text-wrap: pretty; }
+.overview p { margin: 0 0 0.75em; }
+.overview p:last-child { margin-bottom: 0; }
 .read-line { margin-top: 10px; font-size: 15px; color: var(--text-muted); }
 .study-grid { display: grid; gap: 10px; margin: 16px 0 8px; }
 .study-btn {
@@ -158,7 +160,9 @@ body::before {
 .day-card .d { color: var(--gold); }
 .day-card .t { font-family: var(--font-display); font-weight: 700; font-size: 17px; display: block; margin: 4px 0 2px; }
 .day-card .ref { color: var(--text-faint); }
-.day-card .s { margin-top: 6px; font-size: 15px; color: var(--text-muted); line-height: 1.5; }
+.day-card .s { margin-top: 6px; font-size: 15px; color: var(--text-muted); line-height: 1.55; }
+.day-card .s p { margin: 0 0 0.75em; }
+.day-card .s p:last-child { margin-bottom: 0; }
 .source-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
 .source-row a {
   display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 999px;
@@ -1095,6 +1099,12 @@ function geminiKey(){
   return localStorage.getItem('etf_key_gemini') || '';
 }
 
+function studyParas(text){
+  return String(text||'').split(/\n{2,}/).map(function(p){
+    p = p.trim();
+    return p ? '<p>'+esc(p)+'</p>' : '';
+  }).join('');
+}
 function todayName(){
   const day = new Date().getDay();
   if(day===6) return 'Friday';
@@ -1108,12 +1118,12 @@ function renderLesson(){
   const today = todayName();
   const days=(l.days||[]).map(d=>{
     const on = d.day===today ? ' today' : '';
-    return '<article class="day-card'+on+'"><span class="mono d">'+esc(d.day)+(d.day===today?' · today':'')+'</span><span class="t">'+esc(d.title)+'</span><span class="mono ref">'+esc(d.scripture)+'</span><div class="s">'+esc(d.summary)+'</div></article>';
+    return '<article class="day-card'+on+'"><span class="mono d">'+esc(d.day)+(d.day===today?' · today':'')+'</span><span class="t">'+esc(d.title)+'</span><span class="mono ref">'+esc(d.scripture)+'</span><div class="s">'+studyParas(d.summary)+'</div></article>';
   }).join('');
   const focus = (l.days||[]).find(function(d){ return d.day===today; });
   const onSaturday = startOfDay().getDay()===6;
   const focusBlock = (focus && (today==='Sunday' || onSaturday))
-    ? '<article class="day-card today sunday-notes"><span class="mono d">'+esc(today==='Friday'?'Friday’s lesson · still this week':'Sunday notes · this week')+'</span><span class="t">'+esc(focus.title)+'</span><span class="mono ref">'+esc(focus.scripture)+'</span><div class="s">'+esc(focus.summary)+'</div></article>'
+    ? '<article class="day-card today sunday-notes"><span class="mono d">'+esc(today==='Friday'?'Friday’s lesson · still this week':'Sunday notes · this week')+'</span><span class="t">'+esc(focus.title)+'</span><span class="mono ref">'+esc(focus.scripture)+'</span><div class="s">'+studyParas(focus.summary)+'</div></article>'
     : '';
   const sources=(l.sources||[]).map(s=>'<a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.name)+'</a>').join('')
     + '<a href="'+esc(panelNotesUrl(l))+'" target="_blank" rel="noopener">3ABN Panel Notes</a>';
@@ -1130,7 +1140,7 @@ function renderLesson(){
       '<h1 class="lesson-title">'+esc(l.title)+'</h1>'+
       '<blockquote class="memory"><p>“'+esc(l.memoryText)+'”</p><cite class="mono">'+esc(l.memoryRef)+' · '+esc(l.memoryVersion)+'</cite></blockquote>'+
       '<p class="verse-hint">Tap any gold verse to read the full passage.</p>'+
-      '<p class="overview">'+esc(l.overview)+'</p>'+
+      '<div class="overview">'+studyParas(l.overview)+'</div>'+
       (l.readForStudy?'<p class="read-line"><span class="mono" style="color:var(--gold)">Read</span> '+esc(l.readForStudy)+'</p>':'')+
       geminiField+
       '<div class="study-grid">'+studyButton('questions')+studyButton('script')+studyButton('followup')+studyButton('panel')+'</div>'+
@@ -1607,7 +1617,7 @@ document.getElementById('subject').addEventListener('keydown', e=>{ if(e.key==='
 document.getElementById('apiKeyInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
 const LESSON_API = 'https://sabbath-school.adventech.io/api/v1/en/quarterlies';
-const LIVE_CACHE = 'etf_live_lesson_v4';
+const LIVE_CACHE = 'etf_live_lesson_v5';
 let liveQuarter = { year: QUARTER.year, quarter: QUARTER.quarter, title: QUARTER.title, id: '', human: '', live: false };
 
 function parseDMY(s){ const [d,m,y]=s.split('/').map(Number); return new Date(y,m-1,d); }
@@ -1636,19 +1646,21 @@ function stripHtml(html){
     .replace(/\s+/g,' ')
     .trim();
 }
-function firstParagraphs(html, n, skipSnippet){
+function lessonBody(html){
   const cleaned = String(html||'')
-    .replace(/<div[^>]*ss-donation[\s\S]*$/i,'')
-    .replace(/<blockquote[\s\S]*?<\/blockquote>/gi,' ')
-    .replace(/<h3[\s\S]*?<\/h3>/gi,' ');
-  const parts = cleaned.split(/<\/p>/i).map(stripHtml).filter(p=>{
-    if(p.length<50) return false;
-    if(!/[a-z]{3,}\s+[a-z]{3,}/.test(p)) return false;
-    if(/^read for/i.test(p) || /^memory text/i.test(p) || /^study this week/i.test(p) || /^supplemental/i.test(p)) return false;
-    if(skipSnippet && p.includes(skipSnippet.slice(0,40))) return false;
+    .replace(/<script[\s\S]*?<\/script>/gi,'')
+    .replace(/<style[\s\S]*?<\/style>/gi,'');
+  const parts = cleaned.split(/<\/p>/i).map(stripHtml).filter(function(p){
+    if(p.length<25) return false;
+    if(/^read for this week/i.test(p) || /^memory text:/i.test(p) || /^study this week/i.test(p)) return false;
+    if(/the above quotations are taken from ellen/i.test(p)) return false;
+    if(/used by permission/i.test(p) && /ellen g\. white notes/i.test(p)) return false;
     return true;
   });
-  return parts.slice(0,n||2).join(' ').slice(0,720);
+  return parts.join('\n\n');
+}
+function lessonLead(html, n){
+  return lessonBody(html).split(/\n{2,}/).slice(0, n||2).join('\n\n');
 }
 function parseMemory(html){
   const block = (html.match(/Memory Text:[\s\S]{0,800}/i)||[''])[0] || html;
@@ -1698,7 +1710,7 @@ async function fetchLiveLesson(){
   const week = (pack.lessons||[]).find(l => inRange(today, l.start_date, l.end_date)) || (pack.lessons||[])[(pack.lessons||[]).length-1];
   if(!week) throw new Error('No lesson in this quarterly');
   const lessonPack = await fetchJson(LESSON_API+'/'+quarterly.id+'/lessons/'+week.id+'/index.json');
-  const daysMeta = (lessonPack.days||[]).slice(0,8);
+  const daysMeta = lessonPack.days||[];
   const dayReads = await Promise.all(daysMeta.map(async day => {
     try{
       const read = await fetchJson(LESSON_API+'/'+quarterly.id+'/lessons/'+week.id+'/days/'+day.id+'/read/index.json');
@@ -1716,16 +1728,16 @@ async function fetchLiveLesson(){
     end: toISO(parseDMY(week.end_date)),
     memoryText: memory.text, memoryRef: memory.ref, memoryVersion: memory.version,
     readForStudy: parseReadForStudy(sabbathHtml),
-    overview: firstParagraphs(sabbathHtml, 3, memory.text),
+    overview: lessonLead(sabbathHtml, 2),
     year, quarter: qn, quarterTitle: (pack.quarterly&&pack.quarterly.title) || quarterly.title,
-    days: dayReads.slice(0,7).map(item => {
+    days: dayReads.filter(function(item){ return /^\d+$/.test(String(item.day.id||'')); }).map(item => {
       const html = (item.read&&item.read.content) || '';
       const date = parseDMY((item.read&&item.read.date) || item.day.date);
       return {
         day: DAY_NAMES[date.getDay()],
         title: (item.read&&item.read.title) || item.day.title,
         scripture: parseScripture(html),
-        summary: firstParagraphs(html, (date.getDay()===0 || date.getDay()===5) ? 8 : 2, memory.text)
+        summary: lessonBody(html)
       };
     }),
     sources: [
